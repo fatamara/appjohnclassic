@@ -1073,6 +1073,8 @@ class Utils {
       );
 
   }
+
+
   Widget scaffoldIosAndroid({body,backgroundColor,bottomNavigationBar}){
     return Platform.isAndroid ? Scaffold(
       resizeToAvoidBottomInset: false,
@@ -1293,7 +1295,7 @@ class _ZoomDialogState extends State<ZoomDialog> {
         children: [
           _buildImageZoom(context),
           _buildProductDetails(),
-          _buildColorOptions(),
+          //_buildColorOptions(),
           _buildSizePoinureOrTaille(),
           _buildFooter(context),
         ],
@@ -1397,29 +1399,36 @@ class _ZoomDialogState extends State<ZoomDialog> {
       children: [
         const Text("Couleurs"),
         const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: widget.couleur.map<Widget>((item) {
-            String colorName = item['vcCouleur'].toString();
-            int idCouleur = item['id'];
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal, // Défilement horizontal
+          child: Row(
+            children: widget.couleur.map<Widget>((item) {
+              String colorName = item['vcCouleur'].toString();
+              int idCouleur = item['id'];
 
-            bool isSelected = valeurIdCouleur == idCouleur;
+              bool isSelected = valeurIdCouleur == idCouleur;
 
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  valeurIdCouleur = idCouleur;
-                  selectedColor = colorName;
-                });
-              },
-              child: _colorOption(
-                colorName,
-                getColorFromName(colorName),
-                isSelected,
-              ),
-            );
-          }).toList(),
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0), // petit espace entre les couleurs
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      //valeurIdCouleur = idCouleur;
+                      valeurIdCouleur = 0;
+                      selectedColor = colorName;
+                    });
+                  },
+                  child: _colorOption(
+                    colorName,
+                    getColorFromName(colorName),
+                    isSelected,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ),
+
       ],
     );
   }
@@ -1428,18 +1437,79 @@ class _ZoomDialogState extends State<ZoomDialog> {
 
   Color getColorFromName(String name) {
     switch (name.toUpperCase()) {
-      case 'ROUGE':
-        return Colors.red;
-      case 'BLUE':
-        return Colors.blue.shade600;
-      case 'VERT':
-        return Colors.green.shade600;
-      case 'KAKI':
-        return Colors.brown;
+      case 'BLANC':
+        return Colors.white;
       case 'NOIR':
         return Colors.black;
-      case 'BLANCHE':
-        return Colors.white;
+      case 'GRISE':
+        return Colors.grey;
+      case 'Rouge':
+        return Colors.red;
+      case 'BLEU':
+        return Colors.blue;
+      case 'VERT':
+        return Colors.green;
+
+      case 'JAUNE':
+        return Colors.yellow;
+
+      case 'ORANGE':
+        return Colors.orange;
+
+      case 'VIOLET':
+        return Colors.deepPurple;
+
+      case 'ROSE':
+        return Colors.pink;
+
+      case 'MARRON':
+        return Color(0xFFA52A2A);
+
+      case 'BEIGE':
+        return Color(0xFFF5F5DC);
+
+      case 'BORDEAUX':
+        return Color(0xFF800020);
+
+      case 'TURQUOISE':
+        return Color(0xFF40E0D0);
+
+      case 'KAKI':
+        return Color(0xFFC3B091);
+
+      case 'MARINE':
+        return Color(0xFF000080);
+
+      case 'OR':
+        return Color(0xFFFFD700);
+
+
+      case 'ARGENT':
+        return Color(0xFFC0C0C0);
+
+      case 'NOIR RAILLER':
+        return Color(0xFF0A0A0A);
+
+      case 'ROSE FONCÉ':
+        return  Color(0xFF8B008B);
+      case 'ROSE SCHOMO':
+        return  Color(0xFFFF00FF);
+
+      case 'VERT TURQUOISE':
+        return Color(0xFF40E0D0);
+
+      case 'BLEU TURQUOISE':
+        return Color(0xFF00CED1);
+
+      case 'BLEU NUIT':
+        return Color(0xFF191970);
+      case 'VERT FONCÉ RAILLÉ':
+        return Color(0xFF006400);
+
+      case 'GRIS RAILLÉ':
+        return Color(0xFF808080);
+
+
       default:
         return Colors.grey; // couleur par défaut
     }
@@ -1466,6 +1536,7 @@ class _ZoomDialogState extends State<ZoomDialog> {
               ],
             ),
           ),
+
           SizedBox(height: 5),
           Text(
             colorName,
@@ -1484,29 +1555,36 @@ class _ZoomDialogState extends State<ZoomDialog> {
       children: [
         const Text("Pointure"),
         const SizedBox(height: 5),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: widget.taille.map<Widget>((item) {
-            String taille = item['vcTaille'].toString();
-            int idTaille = item['id'];
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: widget.taille.map<Widget>((item) {
+              String taille = item['vcTaille'].toString();
+              int idTaille = item['id'];
 
-            bool isSelected = selectedButton == taille;
+              bool isSelected = selectedButton == taille;
 
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  selectedButton = taille;
-                  valeurIdtaille = idTaille;
-                });
-              },
-              child: _sizeOption(
-                taille,
-                isSelected,
-                isSelected ? Colors.green : Colors.white,
-              ),
-            );
-          }).toList(),
+              return Padding(
+                padding: const EdgeInsets.all(8), // espace à droite
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedButton = taille;
+                      valeurIdtaille = idTaille;
+                    });
+                  },
+                  child: _sizeOption(
+                    taille,
+                    isSelected,
+                    isSelected ? Colors.green : Colors.white,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ),
+
+
       ],
     );
   }
@@ -1571,9 +1649,10 @@ class _ZoomDialogState extends State<ZoomDialog> {
 
         if (label == "Ajouter au panier") {
           // 🔒 Vérification
-          if (selectedButton == null || selectedColor == null) {
+        // selectedColor == null J'ai retiré la couleur dans le controle dabord
+          if (selectedButton == null ) {
             Flushbar(
-              message: " Veuillez sélectionner une taille et une couleur",
+              message: " Veuillez sélectionner une pointure",
               duration: Duration(seconds: 3),
               margin: EdgeInsets.all(8),
               borderRadius: BorderRadius.circular(8),
@@ -1593,10 +1672,10 @@ class _ZoomDialogState extends State<ZoomDialog> {
                 (item) => item['vcCouleur'].toString().toUpperCase() == selectedColor!.toUpperCase(),
             orElse: () => null,
           );
-
-          if (tailleMatch == null || couleurMatch == null) {
+        // couleurMatch == null
+          if (tailleMatch == null ) {
             Flushbar(
-              message: " Veuillez sélectionner une taille et une couleur",
+              message: " Veuillez sélectionner une pointure",
               duration: Duration(seconds: 3),
               margin: EdgeInsets.all(8),
               borderRadius: BorderRadius.circular(8),
@@ -1607,7 +1686,8 @@ class _ZoomDialogState extends State<ZoomDialog> {
           }
 
           final int idTaille = tailleMatch['id'];
-          final int idCouleur = couleurMatch['id'];
+          //final int idCouleur = couleurMatch['id'];
+          final int idCouleur = 0;
 
 
 
@@ -1669,6 +1749,8 @@ class _ZoomDialogState extends State<ZoomDialog> {
     if (indexExistant != -1) {
       setState(() {
         monPanier[indexExistant].quantite += 1;
+        print("Paul Fata");
+        print( monPanier[indexExistant].quantite);
         for (var item in resultatFinalId) {
           if (item['idProduit'] == monPanier[indexExistant].idProduit) {
             item['quantite'] = monPanier[indexExistant].quantite;
@@ -1751,14 +1833,23 @@ class _ZoomDialogState extends State<ZoomDialog> {
     Future.delayed(Duration(seconds: 2), () {
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop(); // Fermer le dialogue
+
       }
       //Page de vetement
-      Future.delayed(const Duration(seconds: 2), () {
-        Navigator.pop(context);
-        // Navigator.of(context).pushReplacement(
-        //   MaterialPageRoute(builder: (context) => Vetement()),
-        // );
-      });
+      if(lieuApel=="dash"){
+        Future.delayed(const Duration(seconds: 2), () {
+          Navigator.pop(context);
+
+        });
+      }
+      else{
+        Future.delayed(const Duration(seconds: 2), () {
+          Navigator.pop(context);
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => Vetement()),
+          );
+        });
+      }
     });
   }
 }

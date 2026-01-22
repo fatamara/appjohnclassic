@@ -42,6 +42,9 @@ class ApiService {
           .toList();
 
       listeCategorie.insert(0, "Tout");
+      mesArticlesFiltrer= mesArticles;
+
+
 
     } on SocketException catch (_) {
       print("erreur");
@@ -74,6 +77,7 @@ class ApiService {
       );
       var jsonResponse = json.decode(response.body);
       modePaiement=jsonResponse['data'];
+      print("$baseUrl&task=getModePaiement");
       print("*****la liste des modes de paiements ****");
       print(modePaiement);
 
@@ -82,5 +86,22 @@ class ApiService {
     }
   }
 
+  getListePublicite() async {
+
+    try {
+      http.Response response;
+
+      response = await http.get(Uri.parse("$baseUrl&task=getPublicite")
+      );
+      var jsonResponse = json.decode(response.body);
+      dataPub=jsonResponse['data'];
+     print("$baseUrl&task=getPublicite");
+      print("***** la liste des pub dispo ****");
+      print(dataPub);
+
+    } on SocketException catch (_) {
+      print("erreur");
+    }
+  }
 
 }

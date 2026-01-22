@@ -28,8 +28,8 @@ class _VetementState extends State<Vetement> {
 
 
   // Variable pour suivre quel bouton est sélectionné
-  String selectedButton = 'Tout';
-
+  // String selectedButton = 'Tout';
+  String selectedButton = 'Veste';
   // Méthode pour gérer la sélection d'un bouton
   void selectButton(String buttonName) {
     setState(() {
@@ -95,7 +95,11 @@ class _VetementState extends State<Vetement> {
 
   @override
   void initState() {
-    mesArticlesFiltrer=mesArticles;
+    print("je lance la page ici");
+    ApiService().getListeArticle();
+    ApiService().getListeModePaiement();
+
+    mesArticlesFiltrer= mesArticles;
     super.initState();
   }
 
@@ -124,24 +128,25 @@ class _VetementState extends State<Vetement> {
                     top: 10,
                     right: -1,
                     child:InkWell(
-                      onTap: (){
-
-                        if(nombreArticlePanier!=0){
-                          loadingPanier(context);
-                        }
-                        else{
+                      onTap:(){
+                        if(nombreArticlePanier.toString()=="0"){
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               elevation: 20,
                               content:Row(
                                 children: [
                                   Icon(Icons.info,color: Colors.white,),
-                                  Text("  Votre panier est vide 🫣!")
+                                  Text("  Votre Panier est vide  🫣!")
                                 ],
                               ),
                               backgroundColor: Colors.red,
                               duration: Duration(seconds: 3),
                             ),
+                          );
+                        }
+                        else{
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(builder: (context) => Monpanier()),
                           );
                         }
                       },
@@ -234,7 +239,62 @@ class _VetementState extends State<Vetement> {
                       child: ClipRRect(
                         borderRadius:BorderRadius.all(Radius.circular(10)),
                         child: Image.asset("assets/images/logo.jpeg",),
-                      ),)
+                      ),),
+                      InkWell(
+                        onTap:(){
+                          if(nombreArticlePanier.toString()=="0"){
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                elevation: 20,
+                                content:Row(
+                                  children: [
+                                    Icon(Icons.info,color: Colors.white,),
+                                    Text("  Votre Panier est vide  🫣!")
+                                  ],
+                                ),
+                                backgroundColor: Colors.red,
+                                duration: Duration(seconds: 3),
+                              ),
+                            );
+                          }
+                          else{
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(builder: (context) => Monpanier()),
+                            );
+                          }
+                        },
+                        child:  Stack(
+                          children: [
+                            Icon(Icons.shopping_cart,size: 40,color: Colors.white,),
+                            Positioned(
+                              right: 20,
+                              top: 0,
+                              child:InkWell(
+                                onTap: (){
+
+                                },
+                                child: Container(
+                                  width: 20,
+
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.red
+                                  ),
+                                  child:Center(
+                                    child: Text(nombreArticlePanier.toString(),
+                                      style:TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold
+                                      ) ,),
+                                  ),
+                                ),
+                              ),
+
+                            )
+                          ],
+                        ),
+                      )
 
                     ],
                   );
@@ -473,6 +533,7 @@ class _VetementState extends State<Vetement> {
                                 InkWell(
                                   onTap: () {
                                     setState(() {
+                                      lieuApel="ves";
                                       dataIdCouleurAndCouleur = mesArticlesFiltrer[index]["couleurs"];
                                       dataidTailleAndTaille = mesArticlesFiltrer[index]["tailles"];
                                       idProduitPanier = int.parse(mesArticlesFiltrer[index]["id"].toString());
@@ -487,8 +548,8 @@ class _VetementState extends State<Vetement> {
                                       context: context,
                                       builder: (_) => ZoomDialog(
                                         description: mesArticlesFiltrer[index]["description"].toString(),
-                                        // prix:prixPromoArticle.toStringAsFixed(0),
-                                        prix:mesArticlesFiltrer[index]["prix"].toString(),
+                                         prix:prixPromoArticle.toStringAsFixed(0),
+                                        // prix:mesArticlesFiltrer[index]["prix"].toString(),
                                         viewNombre: mesArticlesFiltrer[index]["QuanttiteDisponible"].toString(),
                                         imageArticle: mesArticlesFiltrer[index]["image"].toString(),
                                         categorie: mesArticlesFiltrer[index]["categorie"].toString(),
@@ -519,8 +580,8 @@ class _VetementState extends State<Vetement> {
                                 ),
                                 if (double.tryParse(mesArticlesFiltrer[index]["promo"].toString()) != null)
                                   Positioned(
-                                    top: 10,
-                                    left: 10,
+                                    top: 0,
+                                    left: 0,
                                     child: Container(
                                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
@@ -586,7 +647,7 @@ class _VetementState extends State<Vetement> {
     if (promoStr.isNotEmpty && promoStr != "null") {
       double? promo = double.tryParse(promoStr);
       if (promo != null) {
-        return prix * (1 - promo / 100);
+        return prix * (1 + promo / 100);
       }
     }
 
@@ -599,7 +660,7 @@ class _VetementState extends State<Vetement> {
     if (promoStr.isNotEmpty && double.tryParse(promoStr) != null) {
       // Si promo existe, on calcule le prix après promo
       double promoPercent = double.parse(promoStr); // ex: 20 pour 20%
-      double prixPromo = prix * (1 - promoPercent / 100);
+      double prixPromo = prix * (1 + promoPercent / 100);
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -6,23 +6,22 @@ import 'package:flutter/services.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
-import 'package:google_maps_webservice/places.dart';
+
+// import 'package:google_maps_webservice/places.dart';
 import 'package:johnclassic/Pages/res/CustomColors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' hide ModalBottomSheetRoute;
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:intl/intl.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:local_auth_android/local_auth_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../Dashboard/Dashboard.dart';
 import '../HELPER/Footer.dart';
 import '../HELPER/NetworkCheck.dart';
 import '../HELPER/Utils.dart';
 import '../HELPER/location_controller.dart';
+import '../Model/prediction.dart';
 import '../Services/Api.dart';
 import '../globals.dart';
 import 'auth_service.dart';
@@ -38,10 +37,10 @@ class _ConnexionState extends State<Connexion> {
   var telephoneController = TextEditingController();
   var passwordController = TextEditingController();
 
-  TextEditingController nomClient=TextEditingController();
-  TextEditingController prenomClient=TextEditingController();
-  TextEditingController adresseClient=TextEditingController();
-  TextEditingController mailClient=TextEditingController();
+  TextEditingController nomClient = TextEditingController();
+  TextEditingController prenomClient = TextEditingController();
+  TextEditingController adresseClient = TextEditingController();
+  TextEditingController mailClient = TextEditingController();
 
   final KeyForm = GlobalKey<FormState>();
 
@@ -49,24 +48,20 @@ class _ConnexionState extends State<Connexion> {
 
   bool _isObscure = true;
 
-
   final LocalAuthentication localAuthentication = LocalAuthentication();
 
   late SharedPreferences prefs;
 
-
   @override
   void initState() {
     Get.put(LocationController());
-    // sharePreferencesInitiate();
     apiService = ApiService();
-
-    // justif();
 
     super.initState();
   }
 
   NetworkCheck networkCheck = NetworkCheck();
+
   sharePreferencesInitiate() async {
     prefs = await SharedPreferences.getInstance();
 
@@ -74,16 +69,16 @@ class _ConnexionState extends State<Connexion> {
         prefs.getString("msisdnCache").toString().isNotEmpty &&
         prefs.getString("pinCache") != null &&
         prefs.getString("pinCache") != null.toString().isNotEmpty) {
-      Timer(
-          const Duration(seconds: 1),
-          () {
-                if (mounted)
-                  {
-                    authenticateWithBiometrics(prefs.getString("msisdnCache"),
-                        prefs.getString("pinCache"));
-                    telephoneController.text = prefs.getString("msisdnCache")!;
-                  };
-              });
+      Timer(const Duration(seconds: 1), () {
+        if (mounted) {
+          authenticateWithBiometrics(
+            prefs.getString("msisdnCache"),
+            prefs.getString("pinCache"),
+          );
+          telephoneController.text = prefs.getString("msisdnCache")!;
+        }
+        ;
+      });
     }
 
     if (prefs.getString('msisdn') != null) {
@@ -91,22 +86,15 @@ class _ConnexionState extends State<Connexion> {
         networkCheck.checkInternet((isNetworkPresent) async {
           if (isNetworkPresent) {
             String number = 'johnclassic${prefs.getString('msisdn')!}';
-            try {
-
-            } on Exception catch (_) {
-
-            }
+            try {} on Exception catch (_) {}
             prefs.remove('msisdn');
             prefs.remove('pin');
             prefs.remove('id');
             prefs.remove('nom');
             prefs.remove('prenom');
-            // if (timer.isActive) timer.cancel();
           }
         });
-      } on Exception catch (_) {
-        print('llllllllllllllllllllllllllllllll');
-      }
+      } on Exception catch (_) {}
     }
   }
 
@@ -126,11 +114,9 @@ class _ConnexionState extends State<Connexion> {
             backgroundColor: CustomColors().backgroundAppkapi,
             body: body(),
             bottomNavigationBar: Utils().animationContentBottom(
-                context: context,
-                child: const IntrinsicHeight(
-                  child: Pied(),
-                )),
-
+              context: context,
+              child: const IntrinsicHeight(child: Pied()),
+            ),
           ),
         );
       },
@@ -140,54 +126,48 @@ class _ConnexionState extends State<Connexion> {
   Container body() {
     return Container(
       height: MediaQuery.of(context).size.height,
-      width:  MediaQuery.of(context).size.width,
+      width: MediaQuery.of(context).size.width,
       decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: ExactAssetImage("assets/images/fond3.jpg"),
-            fit: BoxFit.cover,
-            alignment: Alignment.center,
-          )
+        image: DecorationImage(
+          image: ExactAssetImage("assets/images/fond3.jpg"),
+          fit: BoxFit.cover,
+          alignment: Alignment.center,
+        ),
       ),
       child: Utils().animationColumn(
-          context: context,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(
-              height: 30,
-            ),
-            Column(
-              children: [
-                Utils().animationContentTop(
-                    context: context,
-                    child: Card(
-                      elevation: 40,
-                      color: Colors.transparent,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          borderRadius:BorderRadius.all(Radius.circular(20)),
-                          color: Colors.white
-                        ),
-                        padding: const EdgeInsets.all(20.0),
-                        margin: const EdgeInsets.only(bottom: 10),
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        height: MediaQuery.of(context).size.height * 0.25,
-                        child: Image.asset(
-                          "assets/images/logoJohnClassic.jpeg",
-                        ),
+        context: context,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 30),
+          Column(
+            children: [
+              Utils().animationContentTop(
+                context: context,
+                child: Card(
+                  elevation: 40,
+                  color: Colors.transparent,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                      color: Colors.white,
+                    ),
+                    padding: const EdgeInsets.all(20.0),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    height: MediaQuery.of(context).size.height * 0.25,
+                    child: Image.asset("assets/images/logoJohnClassic.jpeg"),
+                  ),
+                ),
+              ),
+            ],
+          ),
 
-                      ),
-                    )),
-              ],
-            ),
+          Utils().animationContentTop(context: context, child: content()),
 
-            // const SizedBox(height: 10,),
-            Utils().animationContentTop(context: context, child: content()),
-
-            const SizedBox(
-              height: 5,
-            ),
-          ]),
+          const SizedBox(height: 5),
+        ],
+      ),
     );
   }
 
@@ -195,14 +175,15 @@ class _ConnexionState extends State<Connexion> {
     return Card(
       color: Colors.transparent,
       elevation: 10,
-      child:  Container(
-        height: MediaQuery.of(context).size.height*0.5,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.5,
         width: MediaQuery.of(context).size.width * 0.9,
         decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(10)),
-            border: Border.all(color: Colors.transparent),
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
+          border: Border.all(color: Colors.transparent),
 
-            color: Colors.black12.withOpacity(0.5),),
+          color: Colors.black12.withOpacity(0.5),
+        ),
         padding: const EdgeInsets.all(10),
         margin: const EdgeInsets.only(left: 10, right: 0),
         child: Column(
@@ -210,121 +191,116 @@ class _ConnexionState extends State<Connexion> {
             const Text(
               "S'identifier",
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
             ),
-            const Divider(
-              color: Colors.white,
-              thickness: 2,
-              height: 15,
-            ),
-            const SizedBox(
-              height: 10,
-            ),
+            const Divider(color: Colors.white, thickness: 2, height: 15),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                    onPressed: () => _showLoginBottomSheet(context),
-                    style: ButtonStyle(
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                                side: BorderSide(
-                                    color: CustomColors().backgroundColorAll))),
-                        backgroundColor: MaterialStateProperty.all(Colors.white),
-                        padding:
-                        MaterialStateProperty.all(const EdgeInsets.all(10)),
-                        elevation: MaterialStateProperty.all(0.0)),
-                    child: Image.asset(
-                      "assets/images/icon-login-user.png",
-                      width: 60,
-                      height: 60,
-                      color: CustomColors().backgroundAppkapi,
-                    )),
+                  onPressed: () => _showLoginBottomSheet(context),
+                  style: ButtonStyle(
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        side: BorderSide(
+                          color: CustomColors().backgroundColorAll,
+                        ),
+                      ),
+                    ),
+                    backgroundColor: MaterialStateProperty.all(Colors.white),
+                    padding: MaterialStateProperty.all(
+                      const EdgeInsets.all(10),
+                    ),
+                    elevation: MaterialStateProperty.all(0.0),
+                  ),
+                  child: Image.asset(
+                    "assets/images/icon-login-user.png",
+                    width: 60,
+                    height: 60,
+                    color: CustomColors().backgroundAppkapi,
+                  ),
+                ),
                 ElevatedButton(
-                    onPressed: () async {
+                  onPressed: () async {
+                    bool isAuthorized =
+                        await AuthService.authenticateWithBiometrics(context);
 
-                      bool isAuthorized  = await AuthService.authenticateWithBiometrics(context);
-                      print(isAuthorized.runtimeType);
-                      print("je suis ici");
-                      if (isAuthorized) {
-                        final creds = await AuthService.getStoredCredentials();
-                        if (creds != null) {
-                          print(creds);
-                          telephoneController.text = creds["msisdn"]!;
-                          passwordController.text = creds["pin"]!;
-                          print('les donnees sauvegarder');
-                          print(telephoneController.text);
-                          print( passwordController.text);
+                    if (isAuthorized) {
+                      final creds = await AuthService.getStoredCredentials();
+                      if (creds != null) {
+                        print(creds);
+                        telephoneController.text = creds["msisdn"]!;
+                        passwordController.text = creds["pin"]!;
 
-                          Future.delayed(const Duration(milliseconds: 100), () {
-                            loaderConnexionCompte(context);
-                          });
-                        }
-                        else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content:Row(
-                              children: [
-                                Icon(Icons.info,color: Colors.white,),
-                                Text(" Aucune donnée enregistrée")
-                              ],
-                            )),
-                          );
-                        }
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          loaderConnexionCompte(context);
+                        });
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content:
-                          Row(
-                            children: [
-                              Icon(Icons.info,color: Colors.white,),
-                              Text(" Empreinte non reconnue")
-                            ],
-                          )
+                          const SnackBar(
+                            content: Row(
+                              children: [
+                                Icon(Icons.info, color: Colors.white),
+                                Text(" Aucune donnée enregistrée"),
+                              ],
+                            ),
                           ),
                         );
                       }
-                    },
-                    style: ButtonStyle(
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                            RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                                side: BorderSide(
-                                    color: CustomColors().backgroundColorAll))),
-                        backgroundColor: MaterialStateProperty.all(Colors.white),
-                        padding:
-                        MaterialStateProperty.all(const EdgeInsets.all(10)),
-                        elevation: MaterialStateProperty.all(0.0)),
-                    child: Image.asset(
-                      "assets/images/icon-login-Empreintes.png",
-                      width: 60,
-                      height: 60,
-                      color: CustomColors().backgroundAppkapi,
-                    )
-                )
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Row(
+                            children: [
+                              Icon(Icons.info, color: Colors.white),
+                              Text(" Empreinte non reconnue"),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  style: ButtonStyle(
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        side: BorderSide(
+                          color: CustomColors().backgroundColorAll,
+                        ),
+                      ),
+                    ),
+                    backgroundColor: MaterialStateProperty.all(Colors.white),
+                    padding: MaterialStateProperty.all(
+                      const EdgeInsets.all(10),
+                    ),
+                    elevation: MaterialStateProperty.all(0.0),
+                  ),
+                  child: Image.asset(
+                    "assets/images/icon-login-Empreintes.png",
+                    width: 60,
+                    height: 60,
+                    color: CustomColors().backgroundAppkapi,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            const Divider(
-              color: Colors.white,
-              thickness: 2,
-              height: 15,
-            ),
+            const SizedBox(height: 10),
+            const Divider(color: Colors.white, thickness: 2, height: 15),
 
-             SizedBox(height: MediaQuery.of(context).size.height*0.25,),
-            const Divider(
-              color: Colors.white,
-              thickness: 40,
-              height: 15,
-            ),
-
+            SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+            const Divider(color: Colors.white, thickness: 40, height: 15),
           ],
         ),
       ),
     );
   }
-//Connexion
+
+  //Connexion
   void _showLoginBottomSheet(BuildContext context) {
     _isObscure = true;
     showModalBottomSheet(
@@ -334,10 +310,9 @@ class _ConnexionState extends State<Connexion> {
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return Utils().animationSynchronized(
-            // Configure your animation settings here
-            child: StatefulBuilder(
-          builder: (context, setState) {
-            return Utils().animationContentTop(
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Utils().animationContentTop(
                 context: context,
                 child: SingleChildScrollView(
                   child: Container(
@@ -346,265 +321,290 @@ class _ConnexionState extends State<Connexion> {
                     ),
                     margin: const EdgeInsets.only(left: 20.0, right: 20.0),
                     decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(10.0),
-                            topRight: Radius.circular(10.0)),
-                        boxShadow: [
-                          BoxShadow(color: Colors.grey, spreadRadius: 1)
-                        ]),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10.0),
+                        topRight: Radius.circular(10.0),
+                      ),
+                      boxShadow: [
+                        BoxShadow(color: Colors.grey, spreadRadius: 1),
+                      ],
+                    ),
                     child: _buildLoginBottomSheetContent(setState),
                   ),
-                ));
-          },
-        ));
+                ),
+              );
+            },
+          ),
+        );
       },
     );
   }
+
   Widget _buildLoginBottomSheetContent(setState) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(18.0),
       child: Form(
         key: KeyForm,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            /// ---- Petite barre décorative ----
             Container(
-              width: 50,
+              width: 55,
               height: 5,
-              color: CustomColors().backgroundAppkapi,
+              decoration: BoxDecoration(
+                color: CustomColors().backgroundAppkapi,
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-            const SizedBox(
-              height: 10,
-            ),
+
+            const SizedBox(height: 14),
+
+            /// ---- Titre ----
             Text(
               'S\'identifier',
               style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
-            ),
-            Divider(
-              color: CustomColors().backgroundColorAll,
-              thickness: 0.5,
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: const Text(
-                'Numéro de téléphone',
-                style: TextStyle(color: Colors.black, fontSize: 12,
-                    fontWeight: FontWeight.bold),
-                textAlign: TextAlign.start,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+                letterSpacing: 0.3,
               ),
             ),
-            IntrinsicHeight(
-                child: Utils().textFieldIosAndroid(
-                  maxlength: 9,
-                  controller: telephoneController,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  // textAlignVertical: TextAlignVertical.center,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    // labelText: "Téléphone",
-                      counterText: '',
-                      hintText: "6......",
-                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
-                      // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      suffixIconConstraints: const BoxConstraints(
-                          minWidth: 0, minHeight: 0, maxHeight: 25),
-                      contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
-                      suffixIcon: IconButton(
-                          onPressed: () async {
-                            // prefs = await SharedPreferences.getInstance();
-                            // if(prefs.getString("msisdnCache")!=null&&prefs.getString("msisdnCache").toString().isNotEmpty&&prefs.getString("pinCache")!=null&&prefs.getString("pinCache")!=null.toString().isNotEmpty) {
-                            //   authenticateWithBiometrics(context,prefs.getString("msisdnCache"),prefs.getString("pinCache"));
-                            // }
-                          },
-                          icon: Icon(
-                            Icons.person,
-                            color: Colors.grey[800],
-                            size: 25,
-                          ))),
-                  validator: (val) => val!.isEmpty ? 'Téléphone obligatoire' : null,
-                )),
-            // Divider(color:Colors.white, height: 5, thickness: 2,),
-            const SizedBox(
-              height: 10,
+
+            const SizedBox(height: 6),
+            Divider(color: Colors.grey.shade300, thickness: 1),
+            const SizedBox(height: 20),
+
+            /// ---- Label Téléphone ----
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Numéro de téléphone',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-            Visibility(visible: true,
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: const Text(
-                        'Mot de passe',
-                        style: TextStyle(color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13
-                        ),
-                        textAlign: TextAlign.start,
-                      ),
-                    ),
-                    // SizedBox(height: 5,),
-                    IntrinsicHeight(
-                        child: Utils().textPasswordFieldIosAndroid(
-                          controller: passwordController,
-                          style:  const TextStyle(color: Colors.grey, fontSize: 12),
-                          // textAlignVertical: TextAlignVertical.center,
-                          obscureText: _isObscure,
-                          // maxLength: 10,
-                          keyboardType: TextInputType.number,
-                          textInputAction: TextInputAction.send,
-                          onFieldSubmitted: (value) {
-                            if (KeyForm.currentState!.validate()) {
-                              Navigator.of(context).pop(); // Fermer le BottomSheet
-                              Future.delayed(const Duration(milliseconds: 100), () {
-                                loaderConnexionCompte(context); // Afficher le loader après
-                              });
-                            }
-                          },
-                          decoration: InputDecoration(
-                            // labelText: "Code pin",
-                              hintText: "******",
-                              counterText: '',
-                              hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
-                              // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
-                              floatingLabelBehavior: FloatingLabelBehavior.always,
-                              border: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey, width: 1)),
-                              enabledBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.grey,
-                                    width: 1,
-                                  )),
-                              suffixIconConstraints: const BoxConstraints(
-                                  minWidth: 0, minHeight: 0, maxHeight: 25),
-                              contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
-                              suffixIcon: IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _isObscure = !_isObscure;
-                                    });
-                                  },
-                                  icon: Icon(
-                                    Icons.lock,
-                                    color: Colors.grey[800],
-                                    size: 25,
-                                  ))),
-                          validator: (val) =>
-                          val!.isEmpty ? "Mot de passe obligatoire" : null,
-                        )),
-                  ],
-                )
+            const SizedBox(height: 5),
+
+            /// ---- Champ Téléphone ----
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+
+              child: Utils().textFieldIosAndroid(
+                maxlength: 9,
+                controller: telephoneController,
+                style: const TextStyle(color: Colors.black87, fontSize: 14),
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  counterText: "",
+                  hintText: "6......",
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+                  border: InputBorder.none,
+
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 12,
+                  ),
+                  suffixIcon: Icon(Icons.phone, color: Colors.grey[700]),
+                ),
+
+                validator:
+                    (val) => val!.isEmpty ? 'Téléphone obligatoire' : null,
+              ),
             ),
 
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            const SizedBox(height: 20),
+
+            /// ---- Label Mot de passe ----
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Mot de passe',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 5),
+
+            /// ---- Champ Mot de passe ----
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Utils().textPasswordFieldIosAndroid(
+                controller: passwordController,
+                style: const TextStyle(color: Colors.black87, fontSize: 14),
+                obscureText: _isObscure,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.send,
+                onFieldSubmitted: (value) {
+                  if (KeyForm.currentState!.validate()) {
+                    Navigator.of(context).pop();
+                    Future.delayed(const Duration(milliseconds: 100), () {
+                      loaderConnexionCompte(context);
+                    });
+                  }
+                },
+                decoration: InputDecoration(
+                  hintText: "******",
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 12,
+                  ),
+                  suffixIcon: IconButton(
+                    onPressed: () => setState(() => _isObscure = !_isObscure),
+                    icon: Icon(Icons.lock, color: Colors.grey[700]),
+                  ),
+                ),
+                validator:
+                    (val) => val!.isEmpty ? "Mot de passe obligatoire" : null,
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            /// ---- Liens Créer compte / Mot de passe oublié ----
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-
+                /// ---- Bouton Premium "Créer un compte" ----
                 InkWell(
-                  onTap:(){
+                  onTap: () {
                     setState(() {
-                      nomClient.text="";
-                      prenomClient.text="";
-                      adresseClient.text="";
-                      telephoneController.text="";
-                      mailClient.text="";
-                      Navigator.of(context).pop(); // Fermer le BottomSheet actuel
-                      Future.delayed(const Duration(milliseconds: 100), () {
-                        _showCreationCompteBottomSheet(context); // Puis ouvrir le nouveau
-                      });
+                      nomClient.clear();
+                      prenomClient.clear();
+                      adresseClient.clear();
+                      telephoneController.clear();
+                      mailClient.clear();
 
+                      Navigator.of(context).pop();
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        _showCreationCompteBottomSheet(context);
+                      });
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.only(top: 5),
-                    child: Text(
-                      'Créer un compte ?',
-                      style: TextStyle(
-                          color: Colors.black, fontSize: 13,
-                          fontWeight: FontWeight.bold),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: CustomColors().backgroundAppkapi,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 6,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.person_add_alt_1,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          "Créer un compte",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Visibility(
-                    child: InkWell(
-                      onTap:(){
-                        setState(() {
-                          Navigator.of(context).pop(); // Fermer le BottomSheet actuel
-                          Future.delayed(const Duration(milliseconds: 100), () {
-                            _showMotPasseBottomSheet(context); // Puis ouvrir le nouveau
-                          });
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.only(top: 5),
-                        child: Text(
-                          'Mot de pass oublié?',
-                          style: TextStyle(
-                              color: CustomColors().backgroundColorAll, fontSize: 13),
 
-                        ),
-                      ),
-                    ))
+                /// ---- Mot de passe oublié ----
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      Navigator.of(context).pop();
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        _showMotPasseBottomSheet(context);
+                      });
+                    });
+                  },
+                  child: Text(
+                    'Mot de passe oublié ?',
+                    style: TextStyle(
+                      color: CustomColors().backgroundColorAll,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 40),
-            Utils().elevatedButtonIosAndroid(
+
+            const SizedBox(height: 35),
+
+            /// ---- Bouton Connexion ----
+            SizedBox(
+              width: double.infinity,
+              child: Utils().elevatedButtonIosAndroid(
                 onPressed: () {
                   if (KeyForm.currentState!.validate()) {
-                    Navigator.of(context).pop(); // Fermer le BottomSheet
+                    Navigator.of(context).pop();
                     Future.delayed(const Duration(milliseconds: 100), () {
-                      loaderConnexionCompte(context); // Afficher le loader après
+                      loaderConnexionCompte(context);
                     });
                   }
                 },
                 style: ButtonStyle(
-                    foregroundColor: MaterialStateProperty.all(Colors.white),
-                    backgroundColor: MaterialStateProperty.all(
-                        CustomColors().backgroundAppkapi),
-                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(23)))),
-                child: const Padding(
-                  padding: EdgeInsets.all(13),
-                  child: Center(
-                    child: Text("Connexion"),
+                  foregroundColor: MaterialStateProperty.all(Colors.white),
+                  backgroundColor: MaterialStateProperty.all(
+                    CustomColors().backgroundAppkapi,
                   ),
+                  padding: MaterialStateProperty.all(
+                    const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                  elevation: MaterialStateProperty.all(3),
+                ),
+                child: const Text(
+                  "Connexion",
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
                 borderRadiusIOS: BorderRadius.circular(23),
-                colorIOS: CustomColors().backgroundColorYellow),
-            const SizedBox(
-              height: 30,
+                colorIOS: CustomColors().backgroundColorYellow,
+              ),
             ),
+
+            const SizedBox(height: 30),
+
+            /// ---- Copyright ----
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  "Copyright ",
-                  style: TextStyle(color: Colors.grey[700]),
-                ),
-                Icon(Icons.copyright, color: Colors.grey[700], size: 14),
-                Text(
-                  "${DateFormat('yyyy').format(DateTime.now())} | Made with ",
-                  style: TextStyle(color: Colors.grey[700]),
-                ),
-                Icon(Icons.ac_unit, color: Colors.grey[700], size: 10),
-                Text(
-                  " by John Classic",
-                  style: TextStyle(color: Colors.grey[700]),
+                  "Copyright © ${DateFormat('yyyy').format(DateTime.now())}  |  John Classic",
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
             ),
@@ -613,6 +613,7 @@ class _ConnexionState extends State<Connexion> {
       ),
     );
   }
+
   //*******************Fin modal de connexion***********
 
   //Creation de compte**
@@ -625,32 +626,37 @@ class _ConnexionState extends State<Connexion> {
       builder: (BuildContext context) {
         return Utils().animationSynchronized(
           // Configure your animation settings here
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return Utils().animationContentTop(
-                    context: context,
-                    child: SingleChildScrollView(
-                      child: Container(
-                        padding: EdgeInsets.only(
-                          bottom: MediaQuery.of(context).viewInsets.bottom,
-                        ),
-                        margin: const EdgeInsets.only(left: 20.0, right: 20.0),
-                        decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(10.0),
-                                topRight: Radius.circular(10.0)),
-                            boxShadow: [
-                              BoxShadow(color: Colors.grey, spreadRadius: 1)
-                            ]),
-                        child: _buildCreationCompteBottomSheetContent(setState),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Utils().animationContentTop(
+                context: context,
+                child: SingleChildScrollView(
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10.0),
+                        topRight: Radius.circular(10.0),
                       ),
-                    ));
-              },
-            ));
+                      boxShadow: [
+                        BoxShadow(color: Colors.grey, spreadRadius: 1),
+                      ],
+                    ),
+                    child: _buildCreationCompteBottomSheetContent(setState),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
       },
     );
   }
+
   Widget _buildCreationCompteBottomSheetContent(setState) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -664,148 +670,134 @@ class _ConnexionState extends State<Connexion> {
               height: 5,
               color: CustomColors().backgroundAppkapi,
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Text(
               'Creation du compte',
               style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
-            Divider(
-              color: CustomColors().backgroundColorAll,
-              thickness: 0.5,
-            ),
+            Divider(color: CustomColors().backgroundColorAll, thickness: 0.5),
             const SizedBox(height: 16),
             //Nom du client
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: const Text(
                 'Nom*',
-                style: TextStyle(color: Colors.black, fontSize: 12,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.start,
               ),
             ),
             IntrinsicHeight(
-                child: Utils().textFieldIosAndroid(
-                  maxlength: 20,
-                  controller: nomClient,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  keyboardType: TextInputType.text,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    // labelText: "Téléphone",
-                      counterText: '',
-                      hintText: "......",
-                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
-                      // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      suffixIconConstraints: const BoxConstraints(
-                          minWidth: 0, minHeight: 0, maxHeight: 25),
-                      contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
-                      suffixIcon: IconButton(
-                          onPressed: () async {
-                            // prefs = await SharedPreferences.getInstance();
-                            // if(prefs.getString("msisdnCache")!=null&&prefs.getString("msisdnCache").toString().isNotEmpty&&prefs.getString("pinCache")!=null&&prefs.getString("pinCache")!=null.toString().isNotEmpty) {
-                            //   authenticateWithBiometrics(context,prefs.getString("msisdnCache"),prefs.getString("pinCache"));
-                            // }
-                          },
-                          icon: Icon(
-                            Icons.person,
-                            color: Colors.grey[800],
-                            size: 25,
-                          ))),
-                  validator: (val) => val!.isEmpty ? 'champ obligatoire' : null,
-                )),
-            // Divider(color:Colors.white, height: 5, thickness: 2,),
-            const SizedBox(
-              height: 10,
+              child: Utils().textFieldIosAndroid(
+                maxlength: 20,
+                controller: nomClient,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  // labelText: "Téléphone",
+                  counterText: '',
+                  hintText: "......",
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+                  // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  border: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  suffixIconConstraints: const BoxConstraints(
+                    minWidth: 0,
+                    minHeight: 0,
+                    maxHeight: 25,
+                  ),
+                  contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
+                  suffixIcon: IconButton(
+                    onPressed: () async {},
+                    icon: Icon(Icons.person, color: Colors.grey[800], size: 25),
+                  ),
+                ),
+                validator: (val) => val!.isEmpty ? 'champ obligatoire' : null,
+              ),
             ),
+            // Divider(color:Colors.white, height: 5, thickness: 2,),
+            const SizedBox(height: 10),
             //Prenom du client
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: const Text(
                 'Prénom*',
-                style: TextStyle(color: Colors.black, fontSize: 12,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.start,
               ),
             ),
             IntrinsicHeight(
-                child: Utils().textFieldIosAndroid(
-                  maxlength: 20,
-                  controller: prenomClient,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  keyboardType: TextInputType.text,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    // labelText: "Téléphone",
-                      counterText: '',
-                      hintText: "......",
-                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
-                      // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      suffixIconConstraints: const BoxConstraints(
-                          minWidth: 0, minHeight: 0, maxHeight: 25),
-                      contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
-                      suffixIcon: IconButton(
-                          onPressed: () async {
-                            // prefs = await SharedPreferences.getInstance();
-                            // if(prefs.getString("msisdnCache")!=null&&prefs.getString("msisdnCache").toString().isNotEmpty&&prefs.getString("pinCache")!=null&&prefs.getString("pinCache")!=null.toString().isNotEmpty) {
-                            //   authenticateWithBiometrics(context,prefs.getString("msisdnCache"),prefs.getString("pinCache"));
-                            // }
-                          },
-                          icon: Icon(
-                            Icons.person,
-                            color: Colors.grey[800],
-                            size: 25,
-                          ))),
-                  validator: (val) => val!.isEmpty ? 'champ obligatoire' : null,
-                )),
-            // Divider(color:Colors.white, height: 5, thickness: 2,),
-            const SizedBox(
-              height: 10,
+              child: Utils().textFieldIosAndroid(
+                maxlength: 20,
+                controller: prenomClient,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  // labelText: "Téléphone",
+                  counterText: '',
+                  hintText: "......",
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+                  // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  border: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  suffixIconConstraints: const BoxConstraints(
+                    minWidth: 0,
+                    minHeight: 0,
+                    maxHeight: 25,
+                  ),
+                  contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
+                  suffixIcon: IconButton(
+                    onPressed: () async {},
+                    icon: Icon(Icons.person, color: Colors.grey[800], size: 25),
+                  ),
+                ),
+                validator: (val) => val!.isEmpty ? 'champ obligatoire' : null,
+              ),
             ),
+            // Divider(color:Colors.white, height: 5, thickness: 2,),
+            const SizedBox(height: 10),
 
             //adresse du client
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: const Text(
                 'Adresse*',
-                style: TextStyle(color: Colors.black, fontSize: 12,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.start,
               ),
             ),
             IntrinsicHeight(
-              child:
-              TypeAheadFormField<Prediction>(
-                validator: (val){
-                  if(val!.isEmpty){
-                    return "Veuillez saisir l'adresse";
+              child: TypeAheadFormField<Prediction>(
+                validator: (val) {
+                  if (val!.isEmpty) {
+                    return "Veuillez saisir l'adresse de livraison";
                   }
                   return null;
                 },
@@ -817,221 +809,195 @@ class _ConnexionState extends State<Connexion> {
                   textCapitalization: TextCapitalization.words,
                   keyboardType: TextInputType.streetAddress,
                   decoration: InputDecoration(
-                    hintText: 'Veuillez saisir votre adresse',
+                    hintText: "Veuillez saisir l'adresse",
                     enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.grey,width: 1),
-                        borderRadius: BorderRadius.circular(10.0)
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(5.0),
                     ),
                     focusedBorder: OutlineInputBorder(
-                        borderSide:const  BorderSide(color: Colors.grey,width: 1),
-                        borderRadius: BorderRadius.circular(10.0)
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(5.0),
                     ),
                     focusedErrorBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.grey,width: 1),
-                        borderRadius: BorderRadius.circular(10.0)
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(5.0),
                     ),
                     errorBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.grey,width: 1),
-                        borderRadius: BorderRadius.circular(10.0)
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(5.0),
                     ),
                     filled: true,
                     fillColor: Theme.of(context).cardColor,
                     counterText: '',
-                    hintStyle: const TextStyle(color: Colors.grey,fontSize: 14),
-                    labelStyle: TextStyle(color: CustomColors().backgroundAppBarAccuielle,fontSize: 14),
-                    suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                    hintStyle: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                    labelStyle: TextStyle(
+                      color: CustomColors().backgroundColorAll,
+                      fontSize: 14,
+                    ),
+                    suffixIconConstraints: const BoxConstraints(
+                      minWidth: 0,
+                      minHeight: 0,
+                    ),
                     isDense: true,
                     suffixStyle: TextStyle(
-                        color: CustomColors().backgroundColorAll,
-                        fontSize: 12
+                      color: CustomColors().backgroundColorAll,
+                      fontSize: 12,
                     ),
-                    suffixIcon: IconButton(icon: Icon(Icons.add_location_alt,color: CustomColors().backgroundColorAll,size: 25,),
-                      onPressed: () {
-                      },),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        Icons.add_location_alt,
+                        color: CustomColors().backgroundColorAll,
+                        size: 25,
+                      ),
+                      onPressed: () {},
+                    ),
                   ),
                   style: const TextStyle(
-                      fontSize: 15,
-                      color: Colors.black,
-                      overflow: TextOverflow.ellipsis
+                    fontSize: 15,
+                    color: Colors.black,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 suggestionsCallback: (pattern) async {
-                  return await Get.find<LocationController>().searchLocation(context, pattern);
+                  return await Get.find<LocationController>().searchLocation(
+                    context,
+                    pattern,
+                  );
                 },
                 itemBuilder: (context, Prediction suggestion) {
                   return Container(
                     margin: const EdgeInsets.only(top: 2),
                     padding: const EdgeInsets.all(10),
-                    child: Row(children: [
-                      const Icon(Icons.location_on),
-                      Expanded(
-                        child: Text(suggestion.description!,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.location_on),
+                        Expanded(
+                          child: Text(
+                            suggestion.description!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
                               fontSize: 15,
                               color: Colors.black,
-                              overflow: TextOverflow.ellipsis
-                          ),),
-                      ),
-                    ]),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 },
                 onSuggestionSelected: (Prediction suggestion) {
-                  print("My location is ${suggestion.description!}");
+                  // print("My location is "+suggestion.description!);
                   adresseClient.text = suggestion.description!;
-
-                  Get.back();
+                  // Get.find<LocationController>().setLocation(suggestion.placeId!, suggestion.description!, mapController);
+                  // Get.find<LocationController>().setMapController(_mapController);
+                  // Get.back();
                 },
               ),
             ),
 
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             //numero du client
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: const Text(
                 'Numéro de téléphone*',
-                style: TextStyle(color: Colors.black, fontSize: 12,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.start,
               ),
             ),
             IntrinsicHeight(
-                child: Utils().textFieldIosAndroid(
-                  maxlength: 9,
-                  controller: telephoneController,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  // textAlignVertical: TextAlignVertical.center,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    // labelText: "Téléphone",
-                      counterText: '',
-                      hintText: "6......",
-                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
-                      // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      suffixIconConstraints: const BoxConstraints(
-                          minWidth: 0, minHeight: 0, maxHeight: 25),
-                      contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
-                      suffixIcon: IconButton(
-                          onPressed: () async {
-                            // prefs = await SharedPreferences.getInstance();
-                            // if(prefs.getString("msisdnCache")!=null&&prefs.getString("msisdnCache").toString().isNotEmpty&&prefs.getString("pinCache")!=null&&prefs.getString("pinCache")!=null.toString().isNotEmpty) {
-                            //   authenticateWithBiometrics(context,prefs.getString("msisdnCache"),prefs.getString("pinCache"));
-                            // }
-                          },
-                          icon: Icon(
-                            Icons.person,
-                            color: Colors.grey[800],
-                            size: 25,
-                          ))),
-                  validator: (val) {
-                    if (val == null || val.isEmpty) {
-                      return "Champ obligatoire";
-                    }
-                    else if (val.startsWith("6")==false) {
-                      return "Format invalide";
-                    }
-                    else if (val!.length!=9) {
-                      return "Format invalide";
-                    }
-                    else if(val.toString().isNumericOnly==false){
-                      return "Format invalide";
-                    }
-                    return null;
-                  },
-                )),
-            // Divider(color:Colors.white, height: 5, thickness: 2,),
-            const SizedBox(
-              height: 10,
+              child: Utils().textFieldIosAndroid(
+                maxlength: 9,
+                controller: telephoneController,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                // textAlignVertical: TextAlignVertical.center,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  // labelText: "Téléphone",
+                  counterText: '',
+                  hintText: "6......",
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+                  // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  border: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  suffixIconConstraints: const BoxConstraints(
+                    minWidth: 0,
+                    minHeight: 0,
+                    maxHeight: 25,
+                  ),
+                  contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
+                  suffixIcon: IconButton(
+                    onPressed: () async {},
+                    icon: Icon(Icons.person, color: Colors.grey[800], size: 25),
+                  ),
+                ),
+                validator: (val) {
+                  if (val == null || val.isEmpty) {
+                    return "Champ obligatoire";
+                  } else if (val.startsWith("6") == false) {
+                    return "Format invalide";
+                  } else if (val!.length != 9) {
+                    return "Format invalide";
+                  } else if (val.toString().isNumericOnly == false) {
+                    return "Format invalide";
+                  }
+                  return null;
+                },
+              ),
             ),
+            // Divider(color:Colors.white, height: 5, thickness: 2,),
+            const SizedBox(height: 10),
             //mail du client
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: const Text(
                 'Mail*',
-                style: TextStyle(color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
                 ),
                 textAlign: TextAlign.start,
               ),
             ),
             // SizedBox(height: 5,),
             IntrinsicHeight(
-                child: Utils().textPasswordFieldIosAndroid(
-                  controller: mailClient,
-                  style:  const TextStyle(color: Colors.grey, fontSize: 12),
+              child: Utils().textPasswordFieldIosAndroid(
+                controller: mailClient,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
 
-                  obscureText: true,
+                obscureText: false,
 
-                  keyboardType: TextInputType.text,
-                  textInputAction: TextInputAction.send,
-                  onFieldSubmitted: (value) {
-                    if (KeyForm.currentState!.validate()) {
-                      Navigator.of(context).pop(); // Fermer le BottomSheet
-                      Future.delayed(const Duration(milliseconds: 100), () {
-                        loaderCreationCompte(context); // Afficher le loader après
-                      });
-                    }
-                  },
-                  decoration: InputDecoration(
-
-                      hintText: "example@gmail.com",
-                      counterText: '',
-                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
-                      // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey, width: 1)),
-                      enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      suffixIconConstraints: const BoxConstraints(
-                          minWidth: 0, minHeight: 0, maxHeight: 25),
-                      contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
-                      suffixIcon: IconButton(
-                          onPressed: () {
-
-                          },
-                          icon: Icon(
-                            Icons.mail_lock,
-                            color: Colors.grey[800],
-                            size: 25,
-                          ))),
-                  validator: (val) {
-                    if (val == null || val.isEmpty) {
-                      return "Veuillez saisir votre Gmail";
-                    }
-                    else if (val.toLowerCase().contains("@gmail.com")==false) {
-                      return "Format invalide";
-                    }
-
-                    return null;
-                  },
-                )
-            ),
-
-
-            const SizedBox(height: 40),
-            Utils().elevatedButtonIosAndroid(
-                onPressed: () {
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.send,
+                onFieldSubmitted: (value) {
                   if (KeyForm.currentState!.validate()) {
                     Navigator.of(context).pop(); // Fermer le BottomSheet
                     Future.delayed(const Duration(milliseconds: 100), () {
@@ -1039,38 +1005,86 @@ class _ConnexionState extends State<Connexion> {
                     });
                   }
                 },
-                style: ButtonStyle(
-                    foregroundColor: MaterialStateProperty.all(Colors.white),
-                    backgroundColor: MaterialStateProperty.all(
-                        CustomColors().backgroundAppkapi),
-                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(23)))),
-                child: const Padding(
-                  padding: EdgeInsets.all(13),
-                  child: Center(
-                    child: Text("Valider"),
+                decoration: InputDecoration(
+                  hintText: "example@gmail.com",
+                  counterText: '',
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+                  // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  border: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  suffixIconConstraints: const BoxConstraints(
+                    minWidth: 0,
+                    minHeight: 0,
+                    maxHeight: 25,
+                  ),
+                  contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
+                  suffixIcon: IconButton(
+                    onPressed: () {},
+                    icon: Icon(
+                      Icons.mail_lock,
+                      color: Colors.grey[800],
+                      size: 25,
+                    ),
                   ),
                 ),
-                borderRadiusIOS: BorderRadius.circular(23),
-                colorIOS: CustomColors().backgroundColorYellow),
-            const SizedBox(
-              height: 30,
+                validator: (val) {
+                  if (val == null || val.isEmpty) {
+                    return "Veuillez saisir votre Gmail";
+                  } else if (val.toLowerCase().contains("@gmail.com") ==
+                      false) {
+                    return "Format invalide";
+                  }
+
+                  return null;
+                },
+              ),
             ),
+
+            const SizedBox(height: 40),
+            Utils().elevatedButtonIosAndroid(
+              onPressed: () {
+                if (KeyForm.currentState!.validate()) {
+                  Navigator.of(context).pop(); // Fermer le BottomSheet
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    loaderCreationCompte(context); // Afficher le loader après
+                  });
+                }
+              },
+              style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all(Colors.white),
+                backgroundColor: MaterialStateProperty.all(
+                  CustomColors().backgroundAppkapi,
+                ),
+                shape: MaterialStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(23),
+                  ),
+                ),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(13),
+                child: Center(child: Text("Valider")),
+              ),
+              borderRadiusIOS: BorderRadius.circular(23),
+              colorIOS: CustomColors().backgroundColorYellow,
+            ),
+            const SizedBox(height: 30),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  "Copyright ",
-                  style: TextStyle(color: Colors.grey[700]),
-                ),
+                Text("Copyright ", style: TextStyle(color: Colors.grey[700])),
                 Icon(Icons.copyright, color: Colors.grey[700], size: 14),
                 Text(
-                  "${DateFormat('yyyy').format(DateTime.now())} | Made with ",
+                  "${DateFormat('yyyy').format(DateTime.now())} | ",
                   style: TextStyle(color: Colors.grey[700]),
                 ),
-                Icon(Icons.ac_unit, color: Colors.grey[700], size: 10),
                 Text(
                   " by John Classic",
                   style: TextStyle(color: Colors.grey[700]),
@@ -1082,6 +1096,7 @@ class _ConnexionState extends State<Connexion> {
       ),
     );
   }
+
   //*******************Fin modal de creation***********
 
   //Mot de passe oublié
@@ -1094,32 +1109,37 @@ class _ConnexionState extends State<Connexion> {
       builder: (BuildContext context) {
         return Utils().animationSynchronized(
           // Configure your animation settings here
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return Utils().animationContentTop(
-                    context: context,
-                    child: SingleChildScrollView(
-                      child: Container(
-                        padding: EdgeInsets.only(
-                          bottom: MediaQuery.of(context).viewInsets.bottom,
-                        ),
-                        margin: const EdgeInsets.only(left: 20.0, right: 20.0),
-                        decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(10.0),
-                                topRight: Radius.circular(10.0)),
-                            boxShadow: [
-                              BoxShadow(color: Colors.grey, spreadRadius: 1)
-                            ]),
-                        child: _buildMotdePasseBottomSheetContent(setState),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Utils().animationContentTop(
+                context: context,
+                child: SingleChildScrollView(
+                  child: Container(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    margin: const EdgeInsets.only(left: 20.0, right: 20.0),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10.0),
+                        topRight: Radius.circular(10.0),
                       ),
-                    ));
-              },
-            ));
+                      boxShadow: [
+                        BoxShadow(color: Colors.grey, spreadRadius: 1),
+                      ],
+                    ),
+                    child: _buildMotdePasseBottomSheetContent(setState),
+                  ),
+                ),
+              );
+            },
+          ),
+        );
       },
     );
   }
+
   Widget _buildMotdePasseBottomSheetContent(setState) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -1133,117 +1153,111 @@ class _ConnexionState extends State<Connexion> {
               height: 5,
               color: CustomColors().backgroundAppkapi,
             ),
-            const SizedBox(
-              height: 10,
-            ),
+            const SizedBox(height: 10),
             Text(
-              'Initialiser le mot de passe ',
+              'Réinitialiser le mot de passe ',
               style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
-            Divider(
-              color: CustomColors().backgroundColorAll,
-              thickness: 0.5,
-            ),
+            Divider(color: CustomColors().backgroundColorAll, thickness: 0.5),
             const SizedBox(height: 16),
             SizedBox(
               width: MediaQuery.of(context).size.width,
               child: const Text(
                 'Numéro de téléphone',
-                style: TextStyle(color: Colors.black, fontSize: 12,
-                    fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.start,
               ),
             ),
             IntrinsicHeight(
-                child: Utils().textFieldIosAndroid(
-                  maxlength: 9,
-                  controller: telephoneController,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  // textAlignVertical: TextAlignVertical.center,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    // labelText: "Téléphone",
-                      counterText: '',
-                      hintText: "6......",
-                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
-                      // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
-                      floatingLabelBehavior: FloatingLabelBehavior.always,
-                      border: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.grey,
-                            width: 1,
-                          )),
-                      suffixIconConstraints: const BoxConstraints(
-                          minWidth: 0, minHeight: 0, maxHeight: 25),
-                      contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
-                      suffixIcon: IconButton(
-                          onPressed: () async {
-                            // prefs = await SharedPreferences.getInstance();
-                            // if(prefs.getString("msisdnCache")!=null&&prefs.getString("msisdnCache").toString().isNotEmpty&&prefs.getString("pinCache")!=null&&prefs.getString("pinCache")!=null.toString().isNotEmpty) {
-                            //   authenticateWithBiometrics(context,prefs.getString("msisdnCache"),prefs.getString("pinCache"));
-                            // }
-                          },
-                          icon: Icon(
-                            Icons.person,
-                            color: Colors.grey[800],
-                            size: 25,
-                          ))),
-                  validator: (val) => val!.isEmpty ? 'Téléphone obligatoire' : null,
-                )),
-            // Divider(color:Colors.white, height: 5, thickness: 2,),
-            const SizedBox(
-              height: 10,
-            ),
-            const SizedBox(height: 40),
-            Utils().elevatedButtonIosAndroid(
-                onPressed: () {
-                  if (KeyForm.currentState!.validate()) {
-                    Navigator.of(context).pop(); // Fermer le BottomSheet
-                    Future.delayed(const Duration(milliseconds: 100), () {
-                      loaderRenvoiOTPCompte(context); // Afficher le loader après
-                    });
-                  }
-                },
-                style: ButtonStyle(
-                    foregroundColor: MaterialStateProperty.all(Colors.white),
-                    backgroundColor: MaterialStateProperty.all(
-                        CustomColors().backgroundAppkapi),
-                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(23)))),
-                child: const Padding(
-                  padding: EdgeInsets.all(13),
-                  child: Center(
-                    child: Text("Initialiser"),
+              child: Utils().textFieldIosAndroid(
+                maxlength: 9,
+                controller: telephoneController,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                // textAlignVertical: TextAlignVertical.center,
+                keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  // labelText: "Téléphone",
+                  counterText: '',
+                  hintText: "6......",
+                  hintStyle: const TextStyle(color: Colors.grey, fontSize: 12),
+                  // labelStyle: TextStyle(color: Colors.white,fontSize: 20,),
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  border: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  suffixIconConstraints: const BoxConstraints(
+                    minWidth: 0,
+                    minHeight: 0,
+                    maxHeight: 25,
+                  ),
+                  contentPadding: const EdgeInsets.only(top: 10, bottom: 0),
+                  suffixIcon: IconButton(
+                    onPressed: () async {
+                      // prefs = await SharedPreferences.getInstance();
+                      // if(prefs.getString("msisdnCache")!=null&&prefs.getString("msisdnCache").toString().isNotEmpty&&prefs.getString("pinCache")!=null&&prefs.getString("pinCache")!=null.toString().isNotEmpty) {
+                      //   authenticateWithBiometrics(context,prefs.getString("msisdnCache"),prefs.getString("pinCache"));
+                      // }
+                    },
+                    icon: Icon(Icons.person, color: Colors.grey[800], size: 25),
                   ),
                 ),
-                borderRadiusIOS: BorderRadius.circular(23),
-                colorIOS: CustomColors().backgroundColorYellow),
-            const SizedBox(
-              height: 30,
+                validator:
+                    (val) => val!.isEmpty ? 'Téléphone obligatoire' : null,
+              ),
             ),
+            // Divider(color:Colors.white, height: 5, thickness: 2,),
+            const SizedBox(height: 10),
+            const SizedBox(height: 40),
+            Utils().elevatedButtonIosAndroid(
+              onPressed: () {
+                if (KeyForm.currentState!.validate()) {
+                  Navigator.of(context).pop(); // Fermer le BottomSheet
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    loaderRenvoiOTPCompte(context); // Afficher le loader après
+                  });
+                }
+              },
+              style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all(Colors.white),
+                backgroundColor: MaterialStateProperty.all(
+                  CustomColors().backgroundAppkapi,
+                ),
+                shape: MaterialStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(23),
+                  ),
+                ),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(13),
+                child: Center(child: Text("Réinitialiser")),
+              ),
+              borderRadiusIOS: BorderRadius.circular(23),
+              colorIOS: CustomColors().backgroundColorYellow,
+            ),
+            const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  "Copyright ",
-                  style: TextStyle(color: Colors.grey[700]),
-                ),
+                Text("Copyright ", style: TextStyle(color: Colors.grey[700])),
                 Icon(Icons.copyright, color: Colors.grey[700], size: 14),
                 Text(
-                  "${DateFormat('yyyy').format(DateTime.now())} | Made with ",
+                  "${DateFormat('yyyy').format(DateTime.now())} | ",
                   style: TextStyle(color: Colors.grey[700]),
                 ),
-                Icon(Icons.ac_unit, color: Colors.grey[700], size: 10),
                 Text(
                   " by John Classic",
                   style: TextStyle(color: Colors.grey[700]),
@@ -1256,10 +1270,7 @@ class _ConnexionState extends State<Connexion> {
     );
   }
 
-
-
-
-  loaderCreationCompte(BuildContext context){
+  loaderCreationCompte(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1277,17 +1288,23 @@ class _ConnexionState extends State<Connexion> {
     );
     //apel de la fonction de creation
     createcompteClient(
-        nom: nomClient.text,
-        prenom: prenomClient.text,
-        adresse: adresseClient.text,
-        mail: mailClient.text,
-        numero: telephoneController.text);
-
+      nom: nomClient.text,
+      prenom: prenomClient.text,
+      adresse: adresseClient.text,
+      mail: mailClient.text,
+      numero: telephoneController.text,
+    );
   }
-//Api creation de compte client
 
-  createcompteClient({required nom,required prenom,required adresse,required mail,required numero}) async {
+  //Api creation de compte client
 
+  createcompteClient({
+    required nom,
+    required prenom,
+    required adresse,
+    required mail,
+    required numero,
+  }) async {
     try {
       networkCheck.checkInternet((isNetworkPresent) async {
         if (!isNetworkPresent) {
@@ -1303,7 +1320,6 @@ class _ConnexionState extends State<Connexion> {
                 duration: Duration(seconds: 3),
               ),
             );
-
           });
 
           return;
@@ -1311,13 +1327,14 @@ class _ConnexionState extends State<Connexion> {
           print('connected');
 
           http.Response response;
-          response = await http.get(Uri.parse("$baseUrl&task=addInscriptionClient&nom=$nom&prenom=$prenom&email=$mail&adresse=$adresse&&msisdn=$numero")
+          response = await http.get(
+            Uri.parse(
+              "$baseUrl&task=addInscriptionClient&nom=$nom&prenom=$prenom&email=$mail&adresse=$adresse&&msisdn=$numero",
+            ),
           );
           var jsonResponse = json.decode(response.body);
 
           if (jsonResponse["status"] == 200) {
-
-
             Future.delayed(Duration(seconds: 3), () async {
               if (Navigator.canPop(context)) {
                 Navigator.of(context).pop(); // Fermer le dialogue
@@ -1326,30 +1343,25 @@ class _ConnexionState extends State<Connexion> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   elevation: 20,
-                  content: Text("Compte crée avec succès. veuillez consulter votre gmail pour vos accès de connexion"),
+                  content: Text(
+                    "Compte crée avec succès. Merci de vérifier téléphone pour vos accès de connexion",
+                  ),
                   backgroundColor: Colors.green,
                   duration: Duration(seconds: 3),
                 ),
               );
-              nomClient.text="";
-              prenomClient.text="";
-              telephoneController.text="";
-              adresseClient.text="";
-              mailClient.text="";
+              nomClient.text = "";
+              prenomClient.text = "";
+              telephoneController.text = "";
+              adresseClient.text = "";
+              mailClient.text = "";
 
               await AuthService.saveCredentials(
                 telephoneController.text.trim(),
                 passwordController.text.trim(),
               );
-
-              //Page de connexion
-              Future.delayed(const Duration(seconds: 3), () {
-                Navigator.of(context).pop(); // Fermer le BottomSheet
-              });
             });
-
-          }
-          else {
+          } else {
             Future.delayed(Duration(seconds: 3), () {
               if (Navigator.canPop(context)) {
                 Navigator.of(context).pop(); // Fermer le dialogue
@@ -1363,12 +1375,12 @@ class _ConnexionState extends State<Connexion> {
                   duration: Duration(seconds: 3),
                 ),
               );
-
             });
           }
         }
       });
-    } on SocketException catch (_) {
+    } on SocketException
+    catch (_) {
       Future.delayed(Duration(seconds: 3), () {
         if (Navigator.canPop(context)) {
           Navigator.of(context).pop(); // Fermer le dialogue
@@ -1382,11 +1394,11 @@ class _ConnexionState extends State<Connexion> {
             duration: Duration(seconds: 3),
           ),
         );
-
       });
     }
   }
-//Api connexion de compte client
+
+  //Api connexion de compte client
   loaderConnexionCompte(BuildContext context) {
     showDialog(
       context: context,
@@ -1404,11 +1416,14 @@ class _ConnexionState extends State<Connexion> {
       },
     );
 
-    _login(context, numero: telephoneController.text, codePin: passwordController.text);
+    _login(
+      context,
+      numero: telephoneController.text,
+      codePin: passwordController.text,
+    );
   }
 
   _login(BuildContext context, {required numero, required codePin}) async {
-
     try {
       networkCheck.checkInternet((isNetworkPresent) async {
         if (!isNetworkPresent) {
@@ -1424,7 +1439,6 @@ class _ConnexionState extends State<Connexion> {
                 duration: Duration(seconds: 3),
               ),
             );
-
           });
 
           return;
@@ -1432,39 +1446,44 @@ class _ConnexionState extends State<Connexion> {
           print('connected');
 
           http.Response response;
-          response = await http.get(Uri.parse("$baseUrl&task=auth&msisdn=$numero&password=$codePin&plateforme=Android&version=1.0.0")
+          response = await http.get(
+            Uri.parse(
+              "$baseUrl&task=auth&msisdn=$numero&password=$codePin&plateforme=Android&version=1.0.0",
+            ),
           );
-          print("$baseUrl&task=auth&msisdn=$numero&password=$codePin&plateforme=Android&version=1.0.0");
+          print(
+            "$baseUrl&task=auth&msisdn=$numero&password=$codePin&plateforme=Android&version=1.0.0",
+          );
           var jsonResponse = json.decode(response.body);
 
           if (jsonResponse["status"] == 200) {
-            dataResponse=jsonResponse["data"];
+            dataResponse = jsonResponse["data"];
             print("les info du client");
             print(dataResponse["id"]);
             ApiService().getListeArticle();
             ApiService().getListeCommande();
             ApiService().getListeModePaiement();
+            ApiService().getListePublicite();
+
             Future.delayed(Duration(seconds: 4), () async {
               if (Navigator.canPop(context)) {
                 Navigator.of(context).pop(); // Fermer le dialogue
               }
               // Sauvegarde après validation
               SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setString("msisdnCache", telephoneController.text.trim());
+              await prefs.setString(
+                "msisdnCache",
+                telephoneController.text.trim(),
+              );
               await prefs.setString("pinCache", passwordController.text.trim());
-              telephoneController.text=" ";
-              passwordController.text="";
+              telephoneController.text = " ";
+              passwordController.text = "";
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => Dashboard()),
               );
-
-
-
-
-
             });
-
           }
+
           else {
             Future.delayed(Duration(seconds: 3), () {
               if (Navigator.canPop(context)) {
@@ -1479,7 +1498,6 @@ class _ConnexionState extends State<Connexion> {
                   duration: Duration(seconds: 3),
                 ),
               );
-
             });
           }
         }
@@ -1498,12 +1516,12 @@ class _ConnexionState extends State<Connexion> {
             duration: Duration(seconds: 3),
           ),
         );
-
       });
     }
   }
-//api renvoi otp client
-  loaderRenvoiOTPCompte(BuildContext context){
+
+  //api renvoi otp client
+  loaderRenvoiOTPCompte(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1520,12 +1538,10 @@ class _ConnexionState extends State<Connexion> {
       },
     );
     //apel de la fonction de connexion
-    initialiseOTPClient(
-      numero: telephoneController.text,
-    );
+    initialiseOTPClient(numero: telephoneController.text);
   }
-  initialiseOTPClient({required numero}) async {
 
+  initialiseOTPClient({required numero}) async {
     try {
       networkCheck.checkInternet((isNetworkPresent) async {
         if (!isNetworkPresent) {
@@ -1541,20 +1557,18 @@ class _ConnexionState extends State<Connexion> {
                 duration: Duration(seconds: 3),
               ),
             );
-
           });
 
           return;
         } else {
-
           http.Response response;
-          response = await http.get(Uri.parse("$baseUrl&task=resetPassword&msisdn=$numero")
+          response = await http.get(
+            Uri.parse("$baseUrl&task=resetPassword&msisdn=$numero"),
           );
 
           var jsonResponse = json.decode(response.body);
 
           if (jsonResponse["status"] == 200) {
-
             Future.delayed(Duration(seconds: 3), () {
               if (Navigator.canPop(context)) {
                 Navigator.of(context).pop(); // Fermer le dialogue
@@ -1562,19 +1576,16 @@ class _ConnexionState extends State<Connexion> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   elevation: 20,
-                  content: Text("Code Pin initialisé avec succès. veuillez consulter votre gmail "),
+                  content: Text(
+                    "Mot de passe initialisé avec succès. veuillez consulter vos SMS ",
+                  ),
                   backgroundColor: Colors.green,
                   duration: Duration(seconds: 3),
                 ),
               );
-              setState(() {
-              });
-
-
+              setState(() {});
             });
-
-          }
-          else {
+          } else {
             Future.delayed(Duration(seconds: 3), () {
               if (Navigator.canPop(context)) {
                 Navigator.of(context).pop(); // Fermer le dialogue
@@ -1588,7 +1599,6 @@ class _ConnexionState extends State<Connexion> {
                   duration: Duration(seconds: 3),
                 ),
               );
-
             });
           }
         }
@@ -1607,12 +1617,9 @@ class _ConnexionState extends State<Connexion> {
             duration: Duration(seconds: 3),
           ),
         );
-
       });
     }
   }
-
-
 
   Future<void> authenticateWithBiometrics(msisdn, pin) async {
     final LocalAuthentication localAuthentication = LocalAuthentication();
@@ -1637,17 +1644,18 @@ class _ConnexionState extends State<Connexion> {
     }
   }
 
-  biometrie() async{
+  biometrie() async {
     prefs = await SharedPreferences.getInstance();
-    setState((){
+    setState(() {
       if (prefs.getString("msisdnCache") != null) {
         setState(() {
           authenticateWithBiometrics(
-              prefs.getString("msisdnCache"), prefs.getString("pinCache"));
+            prefs.getString("msisdnCache"),
+            prefs.getString("pinCache"),
+          );
           telephoneController.text = prefs.getString("msisdnCache")!;
         });
       }
     });
   }
-
 }

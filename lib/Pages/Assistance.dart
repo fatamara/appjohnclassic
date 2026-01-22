@@ -310,7 +310,9 @@ class _AssistanceState extends State<Assistance>{
                       Center(
                         child: ElevatedButton(
                             onPressed: (){
-                              sendMessage(idUser: dataResponse['id'],message: messageAssistance.text);
+                             if(KeyForm.currentState!.validate()){
+                               sendMessage(idUser: dataResponse['id'],message: messageAssistance.text);
+                             }
                             },
                             style: ButtonStyle(
                               // shape:MaterialStateProperty.all(CircleBorder(side: BorderSide.none),),

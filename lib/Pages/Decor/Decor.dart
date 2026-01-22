@@ -141,7 +141,7 @@ class _DecorState extends State<Decor> {
           Stack(
             children: [
               Container(
-                height: 200,
+                height: constraints.maxWidth<600?200:220,
                 padding: EdgeInsets.all(5),
                 child: _controller.value.isInitialized ? VideoPlayer(_controller) : Container(),
               ),
@@ -149,8 +149,8 @@ class _DecorState extends State<Decor> {
                 right: -10,
                   bottom: 7,
                   child: Container(
-                    width: 80,
-                    height: 15,
+                    width: constraints.maxWidth<600?100:120,
+                    height: 20,
                     color: Colors.white,
                   )
               )
@@ -217,7 +217,7 @@ class _DecorState extends State<Decor> {
                   width: MediaQuery.of(context).size.width,
                   height: constraints.maxHeight <= 600
                       ? MediaQuery.of(context).size.height * 0.35
-                      : MediaQuery.of(context).size.height * 0.5,
+                      : MediaQuery.of(context).size.height * 0.45,
 
                   decoration:const  BoxDecoration(
                       color: Colors.white,

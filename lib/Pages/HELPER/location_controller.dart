@@ -4,8 +4,9 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
-import 'package:google_maps_webservice/src/places.dart';
+// import 'package:google_maps_webservice/src/places.dart';
 
+import '../Model/prediction.dart';
 import '../Services/Api.dart';
 
 class LocationController extends GetxController{

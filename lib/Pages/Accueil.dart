@@ -1,10 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:johnclassic/Pages/Connexion/Connexion.dart';
 import 'package:johnclassic/Pages/res/CustomColors.dart';
 import 'package:video_player/video_player.dart';
-
 import 'HELPER/Utils.dart';
 
 class Accueil extends StatefulWidget {
@@ -14,29 +12,55 @@ class Accueil extends StatefulWidget {
 
 class _AccueilState extends State<Accueil> {
   late VideoPlayerController _controller;
+  Timer? _redirectTimer;
+  bool _isDisposed = false; // Flag pour savoir si dispose a été appelé
 
   @override
   void initState() {
     super.initState();
-    // Charger la vidéo
-    _controller = VideoPlayerController.asset('assets/images/videoJohn.mp4')
+
+    // Initialisation du controller
+    _controller = VideoPlayerController.asset('assets/images/AccueilPub.mp4')
       ..initialize().then((_) {
-        setState(() {});
-        _controller.play(); //ici je lance la lecture de la video
-        _controller.setLooping(false); // j'empeche de  répéter la vidéo
-        WidgetsBinding.instance!.addPostFrameCallback((_) {
-          // Utiliser le temps de la vidéo pour naviguer
-          Future.delayed(Duration(seconds: 17), () {
-            Navigator.of(context).pushReplacement(MaterialPageRoute(
-                builder: (BuildContext context) => Connexion()));
+        if (_isDisposed) return; // Sécurité si le widget est déjà détruit
+        setState(() {}); // Met à jour l'UI
+        _safePlayVideo();
+        _controller.setLooping(false);
+
+        // Timer pour redirection après la vidéo
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_isDisposed) return;
+          _redirectTimer = Timer(Duration(seconds: 17), () {
+            if (!_isDisposed && mounted) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => Connexion()),
+              );
+            }
           });
         });
       });
   }
+
+  // Fonction sécurisée pour jouer la vidéo
+  void _safePlayVideo() {
+    if (!_isDisposed && _controller.value.isInitialized) {
+      _controller.play();
+    }
+  }
+
+  // Fonction sécurisée pour mettre en pause
+  void _safePauseVideo() {
+    if (!_isDisposed && _controller.value.isInitialized) {
+      _controller.pause();
+    }
+  }
+
   @override
   void dispose() {
+    _isDisposed = true; // Indique que le widget est détruit
+    _redirectTimer?.cancel();
+    _controller.dispose();
     super.dispose();
-    _controller.dispose();  // Libérer les ressources de la vidéo à la fin
   }
 
   @override
@@ -44,42 +68,48 @@ class _AccueilState extends State<Accueil> {
     return Scaffold(
       body: Stack(
         children: [
-          // Vidéo en arrière-plan
+          // Arrière-plan vidéo
           Positioned.fill(
-            child: VideoPlayer(_controller),
+            child: _controller.value.isInitialized
+                ? VideoPlayer(_controller)
+                : Container(color: Colors.black),
           ),
+          // Bouton Continuer
           Positioned(
-            top: MediaQuery.of(context).size.height*0.9,
-              child:  Utils().elevatedButtonIosAndroid(
-                  onPressed: () {
-                    _controller.pause();
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => Connexion()),
-                    );
-                  },
-                  style: ButtonStyle(
-                      foregroundColor: MaterialStateProperty.all(Colors.white),
-                      backgroundColor: MaterialStateProperty.all(
-                          CustomColors().backgroundAppkapi),
-                      shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(0),
-                            bottomRight: Radius.circular(10),
-                            topRight: Radius.circular(10),
-                            bottomLeft: Radius.circular(0),
-                          )
-                      )
-                      )
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(13),
-                    child: Center(
-                      child: Text("Continuer"),
+            top: MediaQuery.of(context).size.height * 0.9,
+            child: Utils().elevatedButtonIosAndroid(
+              onPressed: () {
+                _safePauseVideo();
+                _redirectTimer?.cancel();
+                if (mounted) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => Connexion()),
+                  );
+                }
+              },
+              style: ButtonStyle(
+                foregroundColor: MaterialStateProperty.all(Colors.white),
+                backgroundColor:
+                MaterialStateProperty.all(CustomColors().backgroundAppkapi),
+                shape: MaterialStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(0),
+                      bottomRight: Radius.circular(10),
+                      topRight: Radius.circular(10),
+                      bottomLeft: Radius.circular(0),
                     ),
                   ),
-                  borderRadiusIOS: BorderRadius.circular(23),
-                  colorIOS: CustomColors().backgroundColorYellow),
-          )
+                ),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(13),
+                child: Center(child: Text("Continuer")),
+              ),
+              borderRadiusIOS: BorderRadius.circular(23),
+              colorIOS: CustomColors().backgroundColorYellow,
+            ),
+          ),
         ],
       ),
     );

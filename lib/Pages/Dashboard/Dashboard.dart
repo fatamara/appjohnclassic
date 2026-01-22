@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
+import 'package:another_flushbar/flushbar.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -8,6 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:johnclassic/Pages/Connexion/Connexion.dart';
 import 'package:johnclassic/Pages/Panier/MonPanier.dart';
 import 'package:johnclassic/Pages/Vetements/Vetement.dart';
+import 'package:pushy_flutter/pushy_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -41,14 +45,153 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
   GlobalKey<ScaffoldState>(debugLabel: 'GlobalFormKey Dash ');
   bool _isLoading = false;
   double prixPromoArticle=0;
-
+  Timer? _timer;
   @override
+  int _currentPubIndex = 0;
+
+ //*************pushy***********
+  late SharedPreferences prefs;
+  late List data_messagepush=[];
+
+  //------------fonction pushy pour les notifications-------------------
+
+  Future pushyRegister() async {
+    prefs = await SharedPreferences.getInstance();
+    try {
+      // Make sure the user is registered
+      if (await Pushy.isRegistered()) {
+        // Subscribe the user to a topic
+        await Pushy.subscribe('johnclassic${dataResponse['vcMsisdn']}');
+
+        print('Registred already to topic successfully');
+
+      }else {
+        // Register the user for push notifications
+        String deviceToken = await Pushy.register();
+        // Print token to console/logcat
+        print('Device token: $deviceToken');
+        print('Registreddddd to topic successfully');
+
+      }
+
+    } on Exception catch (error) {
+      print("je suis dans le catch ici ");
+      print(error);
+    }
+  }
+
+  void backgroundNotificationListener(Map<String, dynamic> data) {
+    // Print notification payload data
+    print('Received notification: $data');
+    // Notification title
+    String notificationTitle = 'JOHN-CLASSIC';
+    // Attempt to extract the "message" property from the payload: {"message":"Hello World!"}
+    print(data['message']);
+    // String text = data['message'];
+    print('ici affichage des messages push');
+
+
+
+    if(data['appname']!=null&&data['appname'].toString().toLowerCase()=='JohnClassic'.toLowerCase()
+        &&data['urlencode']!=null
+        &&data['urlencode'].toString()=="1"){
+      // Attempt to extract the "message" property from the payload: {"message":"Hello World!"}
+      print(data['message']);
+      // String notificationText = Utils().decryptoSms(data['message']) ?? 'Nouvelle notification';
+      String text = Uri.decodeFull(data['message']);
+
+      // Android: Displays a system notification
+      // iOS: Displays an alert dialog
+
+      Pushy.notify(notificationTitle, text, data);
+
+
+    }else{
+
+      // Attempt to extract the "message" property from the payload: {"message":"Hello World!"}
+      print(data['message']);
+      String text = data['message'];
+
+      // Android: Displays a system notification
+      // iOS: Displays an alert dialog
+      Pushy.notify(notificationTitle, text, data);
+
+
+    }
+
+
+    // Clear iOS app badge number
+    // Pushy.clearBadge();
+  }
+
+
+
   void initState() {
+    print("'johnclassic${dataResponse['vcMsisdn']}'");
+    Pushy.listen();
+    // Register the user for push notifications
+    pushyRegister();
+
+    Pushy.toggleInAppBanner(true);
+
+    Pushy.setNotificationListener(backgroundNotificationListener);
+    // Listen for notification click
+    Pushy.setNotificationClickListener((Map<String, dynamic> data) {
+      // Print notification payload data
+      print('Notification click: $data');
+      String text = data['message'];
+      print("ici l'affichage des messages issus du push");
+      print(text+' JOHN CLASSIC');
+
+      if(data['appname']!=null&&data['appname'].toString().toLowerCase()=='JohnClassic'.toLowerCase()&&data['urlencode']!=null&&data['urlencode'].toString()=="1") {
+        // Attempt to extract the "message" property from the payload: {"message":"Hello World!"}
+        print(data['message']);
+        // String notificationText = Utils().decryptoSms(data['message']) ?? 'Nouvelle notification';
+        text = Uri.decodeFull(data['message']);
+      }
+
+      showDialog(
+          context: context,
+          builder: (BuildContext context0) {
+            return AlertDialog(
+                title: Text('Notification'),
+                content: Text(text),
+                actions: [ ElevatedButton( child: Text('OK'), onPressed: () { Navigator.of(context, rootNavigator: true).pop('dialog'); } )]
+            );
+          });
+
+      // Clear iOS app badge number
+      Pushy.clearBadge();
+    });
+
+    Pushy.setNotificationIcon('ic_launcher');
+
+    ApiService().getListePublicite();
+
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+        if (dataPub != null && dataPub.isNotEmpty) {
+          final pubsActives = dataPub.where((p) => p["btEnabled"] == 1).toList();
+
+          if (pubsActives.isNotEmpty) {
+            // Sélectionner la pub en rotation
+            final pub = pubsActives[_currentPubIndex % pubsActives.length];
+            showNotification(context, pub);
+
+            // Incrémenter l’index
+            _currentPubIndex++;
+            ApiService().getListePublicite();
+          }
+        }
+      });
+    });
+
+
     ApiService().getListeArticle();
     ApiService().getListeModePaiement();
-    mesArticlesFiltrer=mesArticles;
-    print('le contenu filtrer est');
-    print(mesArticlesFiltrer);
+
+    mesArticlesFiltrer= mesArticles;
 
     super.initState();
 
@@ -67,6 +210,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
         _controller.setLooping(true);
         _fadeController.forward();
       });
+
   }
 
   @override
@@ -301,19 +445,25 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
           Padding(
             padding: const EdgeInsets.all(5),
             child: Text("JOHN CLASSIC.",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white),
             ),
           ),
           IntrinsicHeight(
             child: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(5),
-                  child: Card(
-                    color: Colors.white,
-                    child: Icon(Icons.home, color: Colors.black),
+                InkWell(
+                  onTap: (){
+                    // showNotification(context);
+                  },
+                  child:  Padding(
+                    padding: const EdgeInsets.all(5),
+                    child: Card(
+                      color: Colors.white,
+                      child: Icon(Icons.home, color: Colors.black),
+                    ),
                   ),
-                ),
+                )
+               ,
                 VerticalDivider(color: Colors.white),
                 Padding(
                   padding: const EdgeInsets.all(5),
@@ -351,7 +501,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
                           }
                         });
                       },
-                      items: <String>['Boutique', 'Décoration', 'Immobilier', 'Coiffure']
+                      items: <String>['Boutique', 'Immobilier','Décoration', 'Coiffure']
                           .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
@@ -367,7 +517,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
             ),
           ),
           IntrinsicHeight(
-            child: Row(
+            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 InkWell(
                   onTap:(){
@@ -375,11 +525,10 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(5),
-                    child: Card(color: Colors.white, child: Text("🧑🏾", style: TextStyle(fontSize: 15))),
+                    child: Card(color: Colors.white, child: Text("🧑🏾", style: TextStyle(fontSize: 12))),
                   ),
-                )
-                ,
-               InkWell(
+                ),
+                InkWell(
                  onTap:(){
                    if(nombreArticlePanier.toString()=="0"){
                      ScaffoldMessenger.of(context).showSnackBar(
@@ -404,9 +553,9 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
                  },
                  child:  Stack(
                    children: [
-                     Icon(Icons.shopping_cart,size: 50,color: Colors.white,),
+                     Icon(Icons.shopping_cart,size: 40,color: Colors.white,),
                      Positioned(
-                       right: 10,
+                       right: 20,
                        top: 0,
                        child:InkWell(
                          onTap: (){
@@ -437,22 +586,24 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
               ],
             ),
           ),
+          const SizedBox(width: 5,)
         ],
       ),
     );
   }
 
   SingleChildScrollView body(BoxConstraints constraints) {
-    int nbColonnes = constraints.maxWidth <= 600 ? 2 : 3;
+    int nbColonnes = constraints.maxWidth <= 600 ? 2 : 2;
     int nbGroupes = (mesArticlesFiltrer.length / nbColonnes).ceil();
     return SingleChildScrollView(
       child: Column(
         children: [
           Container(
-            height: 200,
+            height: constraints.maxWidth <= 600 ? 200 : 220,
             child: _controller.value.isInitialized ? VideoPlayer(_controller) : Container(),
           ),
           const SizedBox(height: 10),
+          constraints.maxWidth<600?
           Card(
             color: Colors.white,
             elevation: 10,
@@ -463,15 +614,43 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
                   : const EdgeInsets.symmetric(horizontal: 10),
               child: ListView(
                 scrollDirection: Axis.horizontal,
+
                 padding: EdgeInsets.only(left: 10),
                 children: [
-                  containerService(constraints, imageService: "assets/images/Boutik.png", textService: "Boutique", chemin: 1),
+                  containerService(constraints, imageService: "assets/images/logoJohnClassic.jpeg", textService: "Boutique", chemin: 1),
+                  containerService(constraints, imageService: "assets/images/immo.jpeg", textService: "Immobilier", chemin: 3),
+
                   containerService(constraints, imageService: "assets/images/petit.png", textService: "Décoration", chemin: 2),
-                  containerService(constraints, imageService: "assets/images/immo.png", textService: "Immobilier", chemin: 3),
-                  containerService(constraints, imageService: "assets/images/coiffurec.jpg", textService: "Coiffure", chemin: 4),
+
+                  containerService(constraints, imageService: "assets/images/coiff.jpeg", textService: "Coiffure", chemin: 4),
                 ],
               ),
             ),
+          ):
+          Card(
+            color: Colors.white,
+            elevation: 10,
+            child: Container(
+              height: 100,
+              width: MediaQuery.of(context).size.width,
+              padding: constraints.maxWidth <= 600
+                  ? const EdgeInsets.symmetric(horizontal: 2)
+                  : const EdgeInsets.symmetric(horizontal: 10),
+              child: Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              alignment: WrapAlignment.spaceEvenly,
+              children: [
+                containerService(constraints, imageService: "assets/images/logoJohnClassic.jpeg", textService: "Boutique", chemin: 1),
+                containerService(constraints, imageService: "assets/images/immo.jpeg", textService: "Immobilier", chemin: 3),
+                containerService(constraints, imageService: "assets/images/petit.png", textService: "Décoration", chemin: 2),
+
+                containerService(constraints, imageService: "assets/images/coiff.jpeg", textService: "Coiffure", chemin: 4),
+              ],
+
+            ),
+
+          ),
           ),
           const SizedBox(height: 10,),
           Padding(padding: EdgeInsets.only(left: 10),
@@ -497,6 +676,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
                     ),),
                   InkWell(
                     onTap: (){
+
                       logn(context,chemin: 1);
 
                     },
@@ -514,7 +694,8 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
       mesArticlesFiltrer != null
           ? (mesArticlesFiltrer.isNotEmpty
           ? SizedBox(
-        height: MediaQuery.of(context).size.height * 0.54,
+        height:
+        MediaQuery.of(context).size.height * 0.6,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: nbGroupes,
@@ -549,6 +730,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
                         child: GestureDetector(
                           onTap: () {
                             setState(() {
+                              lieuApel="dash";
                               dataIdCouleurAndCouleur = article["couleurs"];
                               dataidTailleAndTaille = article["tailles"];
                               idProduitPanier = int.parse(article["id"].toString());
@@ -565,8 +747,8 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
                               context: context,
                               builder: (_) => ZoomDialog(
                                 description: article["description"].toString(),
-                                // prix:prixPromoArticle.toStringAsFixed(0),
-                                  prix:article["prix"].toString(),
+                                 prix:prixPromoArticle.toStringAsFixed(0),
+                                //   prix:article["prix"].toString(),
                                 viewNombre: article["QuanttiteDisponible"].toString(),
                                 imageArticle: article["image"].toString(),
                                 categorie: article["categorie"].toString(),
@@ -588,10 +770,10 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
                                   padding: EdgeInsets.all(10),
                                   width: constraints.maxWidth <= 600
                                       ? MediaQuery.of(context).size.width * 0.3
-                                      : MediaQuery.of(context).size.width * 0.3,
+                                      : MediaQuery.of(context).size.width * 0.23,
                                   height: constraints.maxWidth <= 600
                                       ? MediaQuery.of(context).size.width * 0.5
-                                      : MediaQuery.of(context).size.width * 0.4,
+                                      : MediaQuery.of(context).size.width * 0.33,
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(15),
@@ -699,6 +881,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
           InkWell(
               onTap:(){
                 if(chemin==1){
+
                   logn(context,chemin: chemin);
                 }
                 else if(chemin==2){
@@ -817,6 +1000,13 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
           context,
           MaterialPageRoute(builder: (context) => Vetement()),
         );
+        //***********
+        mesArticlesFiltrer = (mesArticles ?? [])
+            .where((element) =>
+        (element["categorie"] ?? "")
+            .toString()
+            .toLowerCase() == "veste")
+            .toList();
       }
       else if(chemin==2){
         chargementImageDecor();
@@ -1011,6 +1201,74 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin, Ro
       print('ID: ${decor.idDecor}, Description: ${decor.descriptionDescor}');
     });
   }
+
+  //**********Affichage notification******
+
+  void showNotification(BuildContext context, Map<String, dynamic> pub) {
+    Flushbar(
+      margin: const EdgeInsets.all(12),
+      borderRadius: BorderRadius.circular(16),
+      backgroundColor: Colors.transparent,
+      duration: const Duration(seconds: 8),
+      flushbarPosition: FlushbarPosition.TOP,
+      padding: const EdgeInsets.only(top: 40, left: 5, right: 5, bottom: 12),
+      messageText: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  pub["url"],
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(height: 12),
+              // if (pub["dateExpire"] != null)
+              //   Text(
+              //     "Expire le ${pub["dateExpire"]}",
+              //     textAlign: TextAlign.center,
+              //     style: const TextStyle(
+              //       color: Colors.white70,
+              //       fontSize: 14,
+              //       fontWeight: FontWeight.w500,
+              //     ),
+              //   ),
+            ],
+          ),
+          Positioned(
+            top: -10,
+            right: -10,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop(); // ferme la notification
+              },
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.orangeAccent,
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(6),
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).show(context);
+  }
+
+
+
+
 }
 
 
