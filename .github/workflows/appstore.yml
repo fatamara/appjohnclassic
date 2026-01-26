@@ -1,1 +1,48 @@
 
+name: iOS App Store Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Clean project
+        run: flutter clean
+
+      - name: Build iOS IPA
+        run: flutter build ipa --release
+
+      - name: Upload to App Store Connect
+        env:
+          API_KEY: ${{ secrets.APP_STORE_CONNECT_KEY }}
+          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_$API_KEY_ID.p8
+
+          xcrun altool --upload-app \
+            -f build/ios/ipa/*.ipa \
+            --type ios \
+            --apiKey $API_KEY_ID \
+            --apiIssuer $ISSUER_ID \
+            --verbose
