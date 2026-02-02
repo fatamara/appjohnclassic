@@ -56,45 +56,29 @@ class _ConnexionState extends State<Connexion> {
   void initState() {
     Get.put(LocationController());
     apiService = ApiService();
+    getPlatformName();
 
     super.initState();
   }
-
+  String getPlatformName() {
+    if (Platform.isIOS) return "iOS";
+    if (Platform.isAndroid) return "Android";
+    return "Unknown";
+  }
   NetworkCheck networkCheck = NetworkCheck();
 
   sharePreferencesInitiate() async {
     prefs = await SharedPreferences.getInstance();
 
-    if (prefs.getString("msisdnCache") != null &&
-        prefs.getString("msisdnCache").toString().isNotEmpty &&
-        prefs.getString("pinCache") != null &&
-        prefs.getString("pinCache") != null.toString().isNotEmpty) {
+    final msisdn = prefs.getString("msisdnCache");
+    final pin = prefs.getString("pinCache");
+
+    if (msisdn != null && pin != null && msisdn.isNotEmpty && pin.isNotEmpty) {
       Timer(const Duration(seconds: 1), () {
         if (mounted) {
-          authenticateWithBiometrics(
-            prefs.getString("msisdnCache"),
-            prefs.getString("pinCache"),
-          );
-          telephoneController.text = prefs.getString("msisdnCache")!;
+          authenticateWithBiometrics(msisdn, pin);
         }
-        ;
       });
-    }
-
-    if (prefs.getString('msisdn') != null) {
-      try {
-        networkCheck.checkInternet((isNetworkPresent) async {
-          if (isNetworkPresent) {
-            String number = 'johnclassic${prefs.getString('msisdn')!}';
-            try {} on Exception catch (_) {}
-            prefs.remove('msisdn');
-            prefs.remove('pin');
-            prefs.remove('id');
-            prefs.remove('nom');
-            prefs.remove('prenom');
-          }
-        });
-      } on Exception catch (_) {}
     }
   }
 
@@ -228,7 +212,7 @@ class _ConnexionState extends State<Connexion> {
                 ElevatedButton(
                   onPressed: () async {
                     bool isAuthorized =
-                        await AuthService.authenticateWithBiometrics(context);
+                    await AuthService.authenticateWithBiometrics(context);
 
                     if (isAuthorized) {
                       final creds = await AuthService.getStoredCredentials();
@@ -1446,14 +1430,14 @@ class _ConnexionState extends State<Connexion> {
           print('connected');
 
           http.Response response;
+          final String plateforme = getPlatformName();
+
           response = await http.get(
             Uri.parse(
-              "$baseUrl&task=auth&msisdn=$numero&password=$codePin&plateforme=Android&version=1.0.0",
+              "$baseUrl&task=auth&msisdn=$numero&password=$codePin&plateforme=$plateforme&version=1.0.0",
             ),
           );
-          print(
-            "$baseUrl&task=auth&msisdn=$numero&password=$codePin&plateforme=Android&version=1.0.0",
-          );
+
           var jsonResponse = json.decode(response.body);
 
           if (jsonResponse["status"] == 200) {
@@ -1621,26 +1605,48 @@ class _ConnexionState extends State<Connexion> {
     }
   }
 
-  Future<void> authenticateWithBiometrics(msisdn, pin) async {
-    final LocalAuthentication localAuthentication = LocalAuthentication();
-    bool isBiometricSupporte = await localAuthentication.isDeviceSupported();
-    bool canCheckBiometrics = await localAuthentication.canCheckBiometrics;
+  Future<void> authenticateWithBiometrics(String? msisdn, String? pin) async {
+    final LocalAuthentication auth = LocalAuthentication();
 
-    isBiometricSupported = isBiometricSupporte;
+    try {
+      final bool isSupported = await auth.isDeviceSupported();
+      final bool canCheck = await auth.canCheckBiometrics;
 
-    print(isBiometricSupporte);
+      if (!isSupported || !canCheck) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Biométrie non disponible")),
+        );
+        return;
+      }
 
-    if (isBiometricSupported && canCheckBiometrics) {
-      isAuthenticated = await localAuthentication.authenticate(
-        localizedReason: 'Please complete the biometrics to proceed.',
+      final bool didAuthenticate = await auth.authenticate(
+        localizedReason: "Authentifiez-vous pour continuer",
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+          useErrorDialogs: true,
+        ),
       );
-    }
 
-    if (isAuthenticated) {
-      Navigator.of(context).pop(); // Fermer le BottomSheet
+      if (!didAuthenticate) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Authentification annulée")),
+        );
+        return;
+      }
+
+      // ✅ succès
+      telephoneController.text = msisdn ?? "";
+      passwordController.text = pin ?? "";
+
       Future.delayed(const Duration(milliseconds: 100), () {
-        loaderConnexionCompte(context); // Afficher le loader après
+        loaderConnexionCompte(context);
       });
+    } on PlatformException catch (e) {
+      debugPrint("Biometric error: ${e.code}");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Erreur biométrique")),
+      );
     }
   }
 
