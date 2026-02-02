@@ -59,9 +59,16 @@
             <string>UIInterfaceOrientationPortrait</string>
         </array>
 
-        <!-- Face ID permission (CRITICAL) -->
+        <!-- Face ID permission -->
         <key>NSFaceIDUsageDescription</key>
         <string>This app uses Face ID to authenticate the user.</string>
+
+        <!-- Location permissions (REQUIRED by Apple) -->
+        <key>NSLocationWhenInUseUsageDescription</key>
+        <string>Your location may be used to improve certain features while you are using the app.</string>
+
+        <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+        <string>Your location may be used to provide relevant services even when the app is not actively in use.</string>
 
     </dict>
 </plist>
