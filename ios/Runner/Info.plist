@@ -2,9 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
+
+        <!-- Performance -->
         <key>CADisableMinimumFrameDurationOnPhone</key>
         <true/>
 
+        <!-- App identity -->
         <key>CFBundleDevelopmentRegion</key>
         <string>$(DEVELOPMENT_LANGUAGE)</string>
 
@@ -38,16 +41,18 @@
         <key>LSRequiresIPhoneOS</key>
         <true/>
 
+        <!-- Input -->
         <key>UIApplicationSupportsIndirectInputEvents</key>
         <true/>
 
+        <!-- UI -->
         <key>UILaunchStoryboardName</key>
         <string>LaunchScreen</string>
 
         <key>UIMainStoryboardFile</key>
         <string>Main</string>
 
-        <!-- iPhone ONLY -->
+        <!-- iPhone only -->
         <key>UIDeviceFamily</key>
         <array>
             <integer>1</integer>
@@ -59,16 +64,22 @@
             <string>UIInterfaceOrientationPortrait</string>
         </array>
 
-        <!-- Face ID permission -->
+        <!-- 🔐 BIOMETRICS (OBLIGATOIRE) -->
         <key>NSFaceIDUsageDescription</key>
-        <string>This app uses Face ID to authenticate the user.</string>
+        <string>
+            Face ID est utilisé pour sécuriser l’accès à votre compte et à vos transactions.
+        </string>
 
-        <!-- Location permissions (REQUIRED by Apple) -->
+        <key>NSBiometricsUsageDescription</key>
+        <string>
+            L’authentification biométrique permet de protéger vos données personnelles.
+        </string>
+
+        <!-- 📍 LOCATION (UNIQUEMENT EN UTILISATION) -->
         <key>NSLocationWhenInUseUsageDescription</key>
-        <string>Your location may be used to improve certain features while you are using the app.</string>
-
-        <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-        <string>Your location may be used to provide relevant services even when the app is not actively in use.</string>
+        <string>
+            La localisation est utilisée pour afficher les points de vente à proximité.
+        </string>
 
     </dict>
 </plist>
