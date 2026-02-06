@@ -14,7 +14,88 @@
         <key>CFBundleDisplayName</key>
         <string>JohnClassic</string>
 
-        <key>CFBundleExecutable</key>
+        <key>CFBundleExecutable</key><?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+            <dict>
+
+                <!-- Performance -->
+                <key>CADisableMinimumFrameDurationOnPhone</key>
+                <true/>
+
+                <!-- App identity -->
+                <key>CFBundleDevelopmentRegion</key>
+                <string>$(DEVELOPMENT_LANGUAGE)</string>
+
+                <key>CFBundleDisplayName</key>
+                <string>JohnClassic</string>
+
+                <key>CFBundleExecutable</key>
+                <string>$(EXECUTABLE_NAME)</string>
+
+                <key>CFBundleIdentifier</key>
+                <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+
+                <key>CFBundleInfoDictionaryVersion</key>
+                <string>6.0</string>
+
+                <key>CFBundleName</key>
+                <string>JohnClassic</string>
+
+                <key>CFBundlePackageType</key>
+                <string>APPL</string>
+
+                <key>CFBundleShortVersionString</key>
+                <string>$(FLUTTER_BUILD_NAME)</string>
+
+                <key>CFBundleSignature</key>
+                <string>????</string>
+
+                <key>CFBundleVersion</key>
+                <string>$(FLUTTER_BUILD_NUMBER)</string>
+
+                <key>LSRequiresIPhoneOS</key>
+                <true/>
+
+                <!-- Input -->
+                <key>UIApplicationSupportsIndirectInputEvents</key>
+                <true/>
+
+                <!-- UI -->
+                <key>UILaunchStoryboardName</key>
+                <string>LaunchScreen</string>
+
+                <key>UIMainStoryboardFile</key>
+                <string>Main</string>
+
+                <!-- iPhone only -->
+                <key>UIDeviceFamily</key>
+                <array>
+                    <integer>1</integer>
+                </array>
+
+                <!-- Portrait only -->
+                <key>UISupportedInterfaceOrientations</key>
+                <array>
+                    <string>UIInterfaceOrientationPortrait</string>
+                </array>
+
+                <!-- 🔐 BIOMETRICS (OBLIGATOIRE) -->
+                <key>NSFaceIDUsageDescription</key>
+                <string>Face ID est utilisé pour l'authentification à l'appli apres une premiere connexion reussi avec le numero de telephone et le mot de passe.</string>
+
+                <key>NSBiometricsUsageDescription</key>
+                <string>L’authentification biométrique permet de protéger vos données personnelles.</string>
+
+                <!-- 📍 LOCATION -->
+                <key>NSLocationWhenInUseUsageDescription</key>
+                <string>La localisation est utilisée pour afficher l'adresse de livraison des commandes du client.</string>
+
+                <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+                <string>La localisation est utilisée pour fournir des fonctionnalités personnalisées et afficher les points de vente à proximité, même lorsque l’app est en arrière-plan.</string>
+
+            </dict>
+        </plist>
         <string>$(EXECUTABLE_NAME)</string>
 
         <key>CFBundleIdentifier</key>
